@@ -140,7 +140,7 @@ def on_message(client, userdata, msg):
     print( " ")
 
 
-client = mqtt.Client( clean_session=False, client_id=args.clientid )
+client = mqtt.Client( clean_session=False, client_id=args.clientid, protocol=mqtt.MQTTv311 )
 client.on_connect = on_connect
 client.on_message = on_message
 
@@ -153,9 +153,9 @@ client.connect( sub.hostname )
 
 
 # get ready to pub.
-post_client = mqtt.Client()
+post_client = mqtt.Client(protocol=mqtt.MQTTv311)
 pub = urllib.parse.urlparse(args.post_broker)
-if sub.username != None: 
+if pub.username != None: 
     post_client.username_pw_set( pub.username, pub.password )
 post_client.connect( pub.hostname )
 print('ready to post to %s as %s' % ( pub.hostname, pub.username ))

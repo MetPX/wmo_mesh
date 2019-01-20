@@ -11,21 +11,19 @@ parser = argparse.ArgumentParser(description='post some files')
 parser.add_argument('--post_broker', default='mqtt://' + host, help=" mqtt://user:pw@host - broker to post to" )
 parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base of the tree to publish')
 parser.add_argument('--post_base_dir', default= os.getcwd() + '/data', help='local directory corresponding to baseurl')
+parser.add_argument('--post_exchange', default='xpublic', help='root of the topic hierarchy (similar to AMQP exchange)')
+parser.add_argument('--post_topic_prefix', default='/v03/post', help='means of separating message versions and types.')
 parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files to post')
 
 args = parser.parse_args( )
 
-client = mqtt.Client()
-
+post_client = mqtt.Client( protocol=mqtt.MQTTv311 )
 pub = urllib.parse.urlparse( args.post_broker) 
-client.username_pw_set( pub.username, pub.password )
-client.connect( pub.hostname )
+if pub.username != None:
+    post_client.username_pw_set( pub.username, pub.password )
+post_client.connect( pub.hostname )
 
-
-exchange='xpublic'
-topic_prefix='/v03/post'
-
-client.loop_start()
+post_client.loop_start()
 
 for f in args.file:
     os.stat( f.name )
@@ -52,11 +50,10 @@ for f in args.file:
     else:
         subtopic=os.path.dirname(relpath)
 
-    t = exchange + topic_prefix + '/' + subtopic
+    t = args.post_exchange + args.post_topic_prefix + '/' + subtopic
     
     print( "topic=%s , payload=%s" % ( t, p ) )
-    client.publish(t, p, qos=2 )
+    post_client.publish(t, p, qos=2 )
     
 
-client.loop_stop()
-client.disconnect()
+post_client.loop_stop()

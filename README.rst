@@ -120,17 +120,9 @@ Installation instructions will vary by distribution.
 
 things to install on debian:
 
-- sudo bash
+- sudo apt install git vim python3-xattr python3-pip mosquitto
 
-- apt install git
-- apt install vim
-
-
-- apt install python3-xattr
-- apt install python3-paho-mqtt  # only on ubuntu, not debian repos
-- apt install python3-pip
-- apt install mosquitto
-- apt install python3-paho-mqtt  # available on ubuntu >18.04, but not in debian stretch
+- sudo apt install python3-paho-mqtt  # available on ubuntu >18.04, but not in debian stretch
 
 - use pip for what you cannot find in repositories::
 
@@ -145,8 +137,8 @@ things to install on debian:
 - get the demo::
 
     (as an ordinary user, *root* not needed.)
-    # git clone https://github.com/MetPX/wmo_mesh_demo
-    # cd wmo_mesh_demo
+    # git clone https://github.com/MetPX/wmo_mesh
+    # cd wmo_mesh
     # mkdir data
 
 
@@ -164,14 +156,19 @@ to define at least two users:
 Configure Mosquitto
 ~~~~~~~~~~~~~~~~~~~
 
-    sudo bash # root shell.
-    cd /etc/mosquitto
-    editor /etc/mosquitto/conf.d/mesh.conf
+    sudo editor /etc/mosquitto/conf.d/mesh.conf
+
     add::
+
         password_file /etc/mosquitto/pwfile
 
-    mosquitto_passwd -c /etc/mosquitto/pwfile owner
-    mosquitto_passwd -c /etc/mosquitto/pwfile guest
+    then run::
+
+       # sudo mosquitto_passwd -c /etc/mosquitto/pwfile owner
+       # sudo mosquitto_passwd -c /etc/mosquitto/pwfile guest
+       # systemctl restart mosquitto
+       # systemctl status mosquitto
+
 
 Configure EMQX
 ~~~~~~~~~~~~~~~
