@@ -15,15 +15,11 @@ host = platform.node()
 
 parser=argparse.ArgumentParser(description='Subscribe to one peer, and post what is downloaded')
 
-parser.add_argument('--broker', default=host, help='peer to subscribe to')
+parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@host of peer to subscribe to')
 parser.add_argument('--broker_clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
-parser.add_argument('--broker_username', default=None, help='authentication to peer broker')
-parser.add_argument('--broker_user_password', default=None, help='password for peer broker')
 
 # the web server address for the source of the locally published tree.
-parser.add_argument('--post_broker', default=host, help='broker to post downloaded files to')
-parser.add_argument('--post_username', default='upload', help='authentication to post broker')
-parser.add_argument('--post_user_password', default='upload', help='password for post broker')
+parser.add_argument('--post_broker', default='mqtt://' + host, help='broker to post downloaded files to')
 parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base url of the files announced')
 parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic tree to announce')
@@ -150,17 +146,20 @@ client.on_message = on_message
 
 # subscribing to a peer.
 print('about to subscribe to # on %s ' % ( args.broker ))
-
-if args.broker_username != None: 
-    client.username_pw_set( args.broker_username, args.broker_user_password )
-
-client.connect( args.broker )
+sub = urllib.parse.urlparse(args.broker)
+if sub.username != None: 
+    client.username_pw_set( sub.username, sub.password )
+client.connect( sub.hostname )
 print('done connect')
 
+
+# get ready to pub.
 post_client = mqtt.Client( clean_session=False, client_id=args.broker_clientid )
-post_client.username_pw_set( args.post_username, args.post_user_password )
-post_client.connect( args.post_broker )
-print('ready to post to %s as %s' % ( args.post_broker, args.post_username ))
+pub = urllib.parse.urlparse(args.post_broker)
+if sub.username != None: 
+    post_client.username_pw_set( pub.username, pub.password )
+post_client.connect( pub.hostname )
+print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
 
 client.loop_forever()
 
