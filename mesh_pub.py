@@ -53,7 +53,7 @@ for f in args.file:
     else:
         subtopic=os.path.dirname(relpath)
 
-    t = exchange + topic_prefix + subtopic
+    t = exchange + topic_prefix + '/' + subtopic
     
     print( "topic=%s , payload=%s" % ( t, p ) )
     client.publish(t, p, qos=2 )
