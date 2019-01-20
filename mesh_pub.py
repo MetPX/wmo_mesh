@@ -14,7 +14,6 @@ parser.add_argument('--post_base_dir', default= os.getcwd() + '/data', help='loc
 parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files to post')
 
 args = parser.parse_args( )
-print( 'args:', args )
 
 client = mqtt.Client()
 

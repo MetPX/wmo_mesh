@@ -16,7 +16,7 @@ host = platform.node()
 parser=argparse.ArgumentParser(description='Subscribe to one peer, and post what is downloaded')
 
 parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@host of peer to subscribe to')
-parser.add_argument('--broker_clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
+parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
 
 # the web server address for the source of the locally published tree.
 parser.add_argument('--post_broker', default='mqtt://' + host, help='broker to post downloaded files to')
@@ -140,21 +140,20 @@ def on_message(client, userdata, msg):
     print( " ")
 
 
-client = mqtt.Client( clean_session=False, client_id=args.broker_clientid )
+client = mqtt.Client( clean_session=False, client_id=args.clientid )
 client.on_connect = on_connect
 client.on_message = on_message
 
 # subscribing to a peer.
-print('about to subscribe to # on %s ' % ( args.broker ))
+print('subscribing to # on %s as client: %s' % ( args.broker, args.clientid ))
 sub = urllib.parse.urlparse(args.broker)
 if sub.username != None: 
     client.username_pw_set( sub.username, sub.password )
 client.connect( sub.hostname )
-print('done connect')
 
 
 # get ready to pub.
-post_client = mqtt.Client( clean_session=False, client_id=args.broker_clientid )
+post_client = mqtt.Client( clean_session=False, client_id=args.clientid )
 pub = urllib.parse.urlparse(args.post_broker)
 if sub.username != None: 
     post_client.username_pw_set( pub.username, pub.password )
