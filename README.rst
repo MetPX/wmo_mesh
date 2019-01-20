@@ -51,6 +51,9 @@ Boiling it down to this relatively small example makes discussion easier.
    YYYYMMDDHHMMSS (in UTC timezone) followed by a fraction of a second after the 
    decimal place.  
 
+   This is chosen rather than any sort of epochal second cound for readability
+   and to avoid worrying about leap seconds.
+
 *  The *baseurl* marks the static starting point to build the complete download URL.
    it represents the root of the download tree on the remote web server.
 

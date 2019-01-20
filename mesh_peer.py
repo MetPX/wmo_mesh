@@ -24,7 +24,7 @@ parser.add_argument('--broker_user_password', default=None, help='password for p
 parser.add_argument('--post_broker', default=host, help='broker to post downloaded files to')
 parser.add_argument('--post_username', default='upload', help='authentication to post broker')
 parser.add_argument('--post_user_password', default='upload', help='password for post broker')
-parser.add_argument('--post_baseurl', default='http://localhost:8000/data', help='base url of the files announced')
+parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base url of the files announced')
 parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic tree to announce')
 parser.add_argument('--post_topic_prefix', default='/v03/post', help='allows simultaneous use of multiple versions and types of messages')
