@@ -57,7 +57,21 @@ Boiling it down to this relatively small example makes discussion easier.
 *  The *baseurl* marks the static starting point to build the complete download URL.
    it represents the root of the download tree on the remote web server.
 
+   specifying the baseurl in each message provides a number of benefits:
+
+   - enables third party transfer, where the broker announcing data doesn't necessarily
+     have it locally, it might just know of a remote location, and not be interested in
+     it for itself, but it could tell clients where to get it if they want it.
+
+     reduces load on broker, by having other nodes do the actual transfers.
+
+   - allows many sources of data to be mixed in the same download stream.
+
+
 *  the *relpath* is the rest of the download url.
+
+   - isolates the relative path as the basis of comparison for duplicates.
+
 
 *  The last argument is the *headers* of which there can be quite a number.
    In this minimal example, only the *sum* headers is included, giving the
@@ -70,8 +84,19 @@ Boiling it down to this relatively small example makes discussion easier.
    permission modes, modification times, etc.. may be included.
 
 
-Create a Peer
-=============
+
+Audience
+========
+
+This demonstration is based on the availability of multiple Linux servers, running
+a recent version of Debian or Ubuntu Linux. All of the interactions are command line,
+and so familiarity with linux system administration, editing of configuration files,
+etc... is needed.
+
+
+Peer Setup
+==========
+
 
 Obtain a Server:
 ----------------
@@ -125,8 +150,19 @@ things to install on debian:
     # mkdir data
 
 
+Configure a Message Broker
+--------------------------
+
+A message broker of some kind needs to be configured.
+The demontration only works with MQTT brokers.  One needs 
+to define at least two users:
+
+  - one subscriber (guest), able to read from xpublic/#
+  - one publisher (owner), able to post to xpublic/#
+
+
 Configure Mosquitto
--------------------
+~~~~~~~~~~~~~~~~~~~
 
     sudo bash # root shell.
     cd /etc/mosquitto
@@ -134,37 +170,51 @@ Configure Mosquitto
     add::
         password_file /etc/mosquitto/pwfile
 
-    mosquitto_passwd -c /etc/mosquitto/pwfile AWZZ
-    mosquitto_passwd -c /etc/mosquitto/pwfile BWAC
-    mosquitto_passwd -c /etc/mosquitto/pwfile CWAP
+    mosquitto_passwd -c /etc/mosquitto/pwfile owner
+    mosquitto_passwd -c /etc/mosquitto/pwfile guest
 
 Configure EMQX
---------------
+~~~~~~~~~~~~~~~
 
 
 start management gui on host:18083
 
-add users
-
-   AWZZ, CWAP, BWAC, (set their passwords.)
+add users, gues and owner.
 
 
-in a shell:
+Start Each Peer
+---------------
 
-    sudo bash
+each node in the network needs to run:
 
+- a web server to allow others to download.
+- a broker to allow messages to flow
+- the mesh_peer script to obtain data from peers.
 
 Start Web Servers
------------------
+~~~~~~~~~~~~~~~~~~
 
     # in one shell start:
     # ./trivialserver.py
 
-Start Peer
-----------
+Start mesh_peer.py
+~~~~~~~~~~~~~~~~~~
     
-   # in a shell window start:
-   # ./mesh_peer.py -broker AWZZ -broker_user_name 
+In a shell window on start::
 
-   in
+   # ./mesh_peer.py -broker mqtt://guest:guestpw@peer_to_subscribe_to -post_broker mqtt://owner:ownerpw@this_host 
+
+it will download data under the *data/* sub-directory, and publish it on this_host's broker. 
+
+Test
+~~~~
+
+on any peer::
+
+   # echo "hello" >data/hello.txt
+   # ./mesh_pub.py --post_broker mqtt://owner:ownerpw@this_host data/hello.txt
+
+And the file should rapidly propagate to the peers.
+
+
 

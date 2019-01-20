@@ -153,7 +153,7 @@ client.connect( sub.hostname )
 
 
 # get ready to pub.
-post_client = mqtt.Client( clean_session=False, client_id=args.clientid )
+post_client = mqtt.Client()
 pub = urllib.parse.urlparse(args.post_broker)
 if sub.username != None: 
     post_client.username_pw_set( pub.username, pub.password )
