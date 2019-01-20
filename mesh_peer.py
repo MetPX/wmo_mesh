@@ -70,12 +70,11 @@ def sum_file( filename, algo ):
     
 
 
-def mesh_download( m, doit=False ):
+def mesh_subpub( m, doit=False ):
     """
        If it isn't already here, download the file announced by the message m.
        If you download it, then publish to  the local broker.
     """
-
     global post_client
 
     # from sr_postv3.7.rst:   [ m[0]=<datestamp> m[1]=<baseurl> m[2]=<relpath> m[3]=<headers> ]
@@ -124,7 +123,7 @@ def mesh_download( m, doit=False ):
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
-    client.subscribe( '#' )
+    client.subscribe( args.post_exchange + args.post_topic_prefix + '/#' )
 
 id=0
 
@@ -136,7 +135,7 @@ def on_message(client, userdata, msg):
     print( "  topic: ", msg.topic )
     print( "payload: ", m )
 
-    mesh_download(m,True)
+    mesh_subpub(m,True)
     print( " ")
 
 
