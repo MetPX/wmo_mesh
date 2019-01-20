@@ -1,0 +1,7 @@
+
+172.25.5.48  laptop # my laptop... 
+172.25.5.170 CWNP  # rpi3 copper: b8:27:eb:fa:0c:a4 wifi: b8:27:eb:af:59:f1
+172.25.5.186 BWQD  # rpi3 copper: b8:27:eb:ba:3e:b8 wifi: b8:27:eb:ef:6b:ed
+172.25.5.32  AWZZ  # rpi1B copper: b8:27:eb:75:27:0e
+
+
