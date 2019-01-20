@@ -13,7 +13,7 @@ parser.add_argument('--post_user_name', default='upload')
 parser.add_argument('--post_user_password', default='upload')
 parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data')
 parser.add_argument('--post_base_dir', default= os.getcwd() + '/data')
-parser.add_argument('file', nargs='+', type=argparse.FileType('w'), help='files to post')
+parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files to post')
 
 args = parser.parse_args( )
 print( 'args:', args )
