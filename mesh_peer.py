@@ -117,17 +117,34 @@ def mesh_subpub( m, doit=False ):
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
     body = json.dumps( ( m[0], args.post_baseurl, m[2], m[3]) )
 
-    print( "posting: t=%s, p=%s" % ( t, body ) ) 
-    post_client.publish( topic=t, payload=body, qos=2 )
+    post_client.publish( topic=t, payload=body, qos=1 )
 
 
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
+rcs = [ "Connection successful", "Connection refused – incorrect protocol version",
+        "Connection refused – invalid client identifier", "Connection refused – server unavailable",
+        "Connection refused – bad username or passwor", "Connection refused – not authorised",
+        "unknown error"
+      ]
+
+def pub_connect(client, userdata, flags, rc):
+    if rc > 5: rc=6
+    print( rcs[rc] )
+
+def sub_connect(client, userdata, flags, rc):
+    if rc > 5: rc=6
+    print( rcs[rc] )
     client.subscribe( args.post_exchange + args.post_topic_prefix + '/#' )
+
+def pub_connect(client, userdata, flags, rc):
+    print("pub connected with result code "+str(rc))
+
+def pub_publish(client, userdata, flags, rc):
+    print( "posting: t=%s, p=%s" % ( t, body ) ) 
+
 
 id=0
 
-def on_message(client, userdata, msg):
+def sub_message(client, userdata, msg):
     global id
     id = id + 1
     m = json.loads(msg.payload.decode('utf-8'))
@@ -140,8 +157,8 @@ def on_message(client, userdata, msg):
 
 
 client = mqtt.Client( clean_session=False, client_id=args.clientid, protocol=mqtt.MQTTv311 )
-client.on_connect = on_connect
-client.on_message = on_message
+client.on_connect = sub_connect
+client.on_message = sub_message
 
 # subscribing to a peer.
 print('subscribing to # on %s as client: %s' % ( args.broker, args.clientid ))
@@ -157,6 +174,10 @@ pub = urllib.parse.urlparse(args.post_broker)
 if pub.username != None: 
     post_client.username_pw_set( pub.username, pub.password )
 post_client.connect( pub.hostname )
+
+post_client.on_connect = pub_connect
+post_client.on_publish = pub_publish
+
 print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
 
 client.loop_forever()

@@ -6,6 +6,19 @@ from hashlib import md5
 
 host=platform.node()
 
+rcs = [ "Connection successful", "Connection refused – incorrect protocol version", 
+        "Connection refused – invalid client identifier", "Connection refused – server unavailable",
+        "Connection refused – bad username or passwor", "Connection refused – not authorised", 
+        "unknown error" 
+      ]
+
+def pub_connect(client, userdata, flags, rc):
+    if rc > 5: rc=6
+    print( rcs[rc] )
+
+def pub_publish(client, userdata, mid):
+    print("published mid=%s" % ( mid ) )
+
 parser = argparse.ArgumentParser(description='post some files')
 
 parser.add_argument('--post_broker', default='mqtt://' + host, help=" mqtt://user:pw@host - broker to post to" )
@@ -18,6 +31,10 @@ parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files 
 args = parser.parse_args( )
 
 post_client = mqtt.Client( protocol=mqtt.MQTTv311 )
+
+post_client.on_connect = pub_connect
+post_client.on_publish = pub_publish
+
 pub = urllib.parse.urlparse( args.post_broker) 
 if pub.username != None:
     post_client.username_pw_set( pub.username, pub.password )
@@ -53,7 +70,7 @@ for f in args.file:
     t = args.post_exchange + args.post_topic_prefix + '/' + subtopic
     
     print( "topic=%s , payload=%s" % ( t, p ) )
-    post_client.publish(t, p, qos=2 )
+    post_client.publish(t, p, qos=1 )
     
 
 post_client.loop_stop()
