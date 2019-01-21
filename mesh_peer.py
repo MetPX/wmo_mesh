@@ -128,11 +128,11 @@ rcs = [ "Connection successful", "Connection refused – incorrect protocol vers
 
 def pub_connect(client, userdata, flags, rc):
     if rc > 5: rc=6
-    print( rcs[rc] )
+    print( "on publishing:", rcs[rc] )
 
 def sub_connect(client, userdata, flags, rc):
     if rc > 5: rc=6
-    print( rcs[rc] )
+    print( "on connection to subscribe:", rcs[rc] )
     client.subscribe( args.post_exchange + args.post_topic_prefix + '/#' )
 
 def pub_connect(client, userdata, flags, rc):
