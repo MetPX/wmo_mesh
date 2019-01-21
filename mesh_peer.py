@@ -116,7 +116,10 @@ def mesh_subpub( m, doit=False ):
     # after download, publish for others.
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
     body = json.dumps( ( m[0], args.post_baseurl, m[2], m[3]) )
-    post_client.publish( topic=t, payload=body, qos=1 )
+
+    info = post_client.publish( topic=t, payload=body, qos=1 )
+    info.wait_for_publish()
+    print( "published: t=%s, body=%s" % ( t, body ) )
 
 
 rcs = [ "Connection successful", "Connection refused – incorrect protocol version",
@@ -136,10 +139,6 @@ def sub_connect(client, userdata, flags, rc):
 
 def pub_connect(client, userdata, flags, rc):
     print("pub connected with result code "+str(rc))
-
-def pub_publish(client, userdata, flags, rc):
-    print( "posting: t=%s, p=%s" % ( t, body ) ) 
-
 
 id=0
 
@@ -172,7 +171,7 @@ client.connect( sub.hostname )
 # get ready to pub.
 post_client = mqtt.Client(protocol=mqtt.MQTTv311)
 post_client.on_connect = pub_connect
-post_client.on_publish = pub_publish
+post_client.loop_start()
 
 pub = urllib.parse.urlparse(args.post_broker)
 if pub.username != None: 
@@ -182,4 +181,6 @@ post_client.connect( pub.hostname )
 print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
 
 client.loop_forever()
+
+
 
