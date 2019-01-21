@@ -152,6 +152,8 @@ to define at least two users:
   - one subscriber (guest), able to read from xpublic/#
   - one publisher (owner), able to post to xpublic/#
 
+Demo was done with an `EMQX <emqtt.io>`_ on a laptop, and the `mosquitto <https://mosquitto.org/>`_ running
+on three raspberry pi's.  
 
 Configure Mosquitto
 ~~~~~~~~~~~~~~~~~~~
@@ -177,7 +179,17 @@ Configure EMQX
 
 start management gui on host:18083
 
-add users, gues and owner.
+add users, guest and owner, and set their passwords.
+Add the following to /etc/emqx/acl.conf::
+
+ {allow, all, subscribe, [ "xpublic/#" ] }.
+
+ {allow, {user, "owner"}, publish, [ "xpublic/#" ] }.
+
+then just restart::
+
+  systemctl restart emqx
+
 
 
 Start Each Peer
@@ -215,4 +227,20 @@ on any peer::
 And the file should rapidly propagate to the peers.
 
 
+cleanup
+~~~~~~~
 
+a sample cron job for directory cleanup has been included.  It is called as follows::
+
+    ./old_hour_dirs.py 13 data
+
+to remove all directories with utc datestamps more than 13 hours old.
+
+
+
+Insert Some Data
+----------------
+
+There are some Canadian data pumps publishing Sarracenia v02 messages over AMQP 0.9 protocol
+(rabbitMQ broker) available on the internet.  there are various ways of injecting data
+into such a network, using the exp_2mqtt for a Sarracenia subscriber.
