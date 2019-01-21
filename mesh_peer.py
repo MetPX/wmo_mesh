@@ -116,7 +116,6 @@ def mesh_subpub( m, doit=False ):
     # after download, publish for others.
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
     body = json.dumps( ( m[0], args.post_baseurl, m[2], m[3]) )
-
     post_client.publish( topic=t, payload=body, qos=1 )
 
 
@@ -172,13 +171,13 @@ client.connect( sub.hostname )
 
 # get ready to pub.
 post_client = mqtt.Client(protocol=mqtt.MQTTv311)
+post_client.on_connect = pub_connect
+post_client.on_publish = pub_publish
+
 pub = urllib.parse.urlparse(args.post_broker)
 if pub.username != None: 
     post_client.username_pw_set( pub.username, pub.password )
 post_client.connect( pub.hostname )
-
-post_client.on_connect = pub_connect
-post_client.on_publish = pub_publish
 
 print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
 
