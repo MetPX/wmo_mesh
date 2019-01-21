@@ -164,8 +164,9 @@ Configure Mosquitto
 
     then run::
 
-       # sudo mosquitto_passwd -c /etc/mosquitto/pwfile owner
-       # sudo mosquitto_passwd -c /etc/mosquitto/pwfile guest
+       # sudo touch /etc/mosquitto/pwfile
+       # sudo mosquitto_passwd -b /etc/mosquitto/pwfile owner ownerpw
+       # sudo mosquitto_passwd -b /etc/mosquitto/pwfile guest guestpw
        # systemctl restart mosquitto
        # systemctl status mosquitto
 

@@ -161,7 +161,9 @@ client.on_connect = sub_connect
 client.on_message = sub_message
 
 # subscribing to a peer.
-print('subscribing to # on %s as client: %s' % ( args.broker, args.clientid ))
+print('subscribing to  %s/# on %s as client: %s' % ( args.post_exchange + \
+    args.post_topic_prefix, args.broker, args.clientid ) )
+
 sub = urllib.parse.urlparse(args.broker)
 if sub.username != None: 
     client.username_pw_set( sub.username, sub.password )
