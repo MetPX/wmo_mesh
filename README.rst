@@ -243,9 +243,12 @@ a sample cron job for directory cleanup has been included.  It is called as foll
     ./old_hour_dirs.py 13 data
 
 to remove all directories with utc datestamps more than 13 hours old.
+sample crontab entry::
 
+    21 * * * * /home/peter/wmo_mesh/old_hour_dirs.py 2 /home/peter/wmo_mesh/data
 
-
+At 21 minutes past the hour, every hour delete directory trees under /home/peter/wmo_mesh/data which
+are more than two hours old.
 
 
 Insert Some Data
@@ -255,10 +258,7 @@ There are some Canadian data pumps publishing Sarracenia v02 messages over AMQP 
 (rabbitMQ broker) available on the internet. There are various ways of injecting data
 into such a network, using the exp_2mqtt for a Sarracenia subscriber.
 
-Check out the Sarracenia repository::
-
-  git checkout https:/github.com/MetPx/sarracenia
-  cd sarracenia
-
+(coming soon...)
+  
 
 
