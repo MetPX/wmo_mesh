@@ -70,7 +70,8 @@ for f in args.file:
     t = args.post_exchange + args.post_topic_prefix + '/' + subtopic
     
     print( "topic=%s , payload=%s" % ( t, p ) )
-    post_client.publish(t, p, qos=1 )
+    info = post_client.publish(t, p, qos=1 )
+    info.wait_for_publish()
     
 
 post_client.loop_stop()

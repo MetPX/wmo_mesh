@@ -1,5 +1,5 @@
 
-Status: Work in progress (ie. not functional at all yet.)
+Status: working.
 
 ==================================================
 Minimal Demonstration of Mesh network over Pub/Sub
@@ -205,6 +205,7 @@ Start Web Servers
 ~~~~~~~~~~~~~~~~~~
 
     # in one shell start:
+    # cd wmo_mesh
     # ./trivialserver.py
 
 Start mesh_peer.py
@@ -226,6 +227,13 @@ on any peer::
 
 And the file should rapidly propagate to the peers.
 
+For example with four nodes named blacklab, awzz, bwqd, and cwnp. 
+examples::
+ 
+   blacklab% ./mesh_peer.py --broker mqtt://guest:guestpw@blacklab  --post_broker http://owner:ownerpw@awzz
+   pi@BWQD:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@blacklab --post_broker mqtt://owner:ownerpw@bwqd
+   pi@cwnp:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@bwqd --post_broker mqtt://owner:ownerpw@cwnp
+   pi@AWZZ:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@cwnp --post_broker mqtt://owner:ownerpw@awzz
 
 cleanup
 ~~~~~~~
@@ -238,9 +246,19 @@ to remove all directories with utc datestamps more than 13 hours old.
 
 
 
+
+
 Insert Some Data
 ----------------
 
 There are some Canadian data pumps publishing Sarracenia v02 messages over AMQP 0.9 protocol
-(rabbitMQ broker) available on the internet.  there are various ways of injecting data
+(rabbitMQ broker) available on the internet. There are various ways of injecting data
 into such a network, using the exp_2mqtt for a Sarracenia subscriber.
+
+Check out the Sarracenia repository::
+
+  git checkout https:/github.com/MetPx/sarracenia
+  cd sarracenia
+
+
+
