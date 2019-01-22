@@ -129,7 +129,7 @@ rcs = [ "Connection successful", "Connection refused – incorrect protocol vers
       ]
 
 def pub_connect(client, userdata, flags, rc):
-    if rc > 5: rc=6
+    if not ( 0 <= rc <= 5) : rc=6
     print( "on publishing:", rcs[rc] )
 
 def sub_connect(client, userdata, flags, rc):
