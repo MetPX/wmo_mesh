@@ -17,6 +17,7 @@ parser=argparse.ArgumentParser(description='Subscribe to one peer, and post what
 
 parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@host of peer to subscribe to')
 parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
+parser.add_argument('--verbose', default=1, type=int, help='how chatty to be 0-rather quiet ... 3-quite chatty really')
 
 # the web server address for the source of the locally published tree.
 parser.add_argument('--post_broker', default='mqtt://' + host, help='broker to post downloaded files to')
@@ -42,15 +43,17 @@ def sum_file( filename, algo ):
       calculate the checksum of a file using the given algorithm. return a sum header.
       side effect: stores the checksum in a file attribute, if the sum is already available there, then use it.
     """
-    global sxa
+    global sxa,args
 
 
     a = xattr.xattr( filename )
     if sxa in a.keys():
-        print( "retrieving sum" )
+        if args.verbose > 1:
+            print( "retrieving sum" )
         return a[sxa].decode('utf-8')
  
-    print( "calculating sum" )
+    if args.verbose > 1:
+        print( "calculating sum" )
     if algo in [ 'd', 's' ]:
         f = open(filename,'rb')
         d = f.read()
@@ -75,7 +78,7 @@ def mesh_subpub( m, doit=False ):
        If it isn't already here, download the file announced by the message m.
        If you download it, then publish to  the local broker.
     """
-    global post_client
+    global post_client,args
 
     # from sr_postv3.7.rst:   [ m[0]=<datestamp> m[1]=<baseurl> m[2]=<relpath> m[3]=<headers> ]
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
@@ -93,17 +96,20 @@ def mesh_subpub( m, doit=False ):
     FirstTime=True
     if os.path.exists( p ):
         FirstTime=False
-        print( "file exists: %s. Should we download? " % p )
+        if args.verbose > 1:
+            print( "file exists: %s. Should we download? " % p )
 
         if 'sum' in m[3].keys():
 
             sumstr = sum_file(p, m[3]['sum'][0] )
             print( "hash: %s" % sumstr )
             if sumstr == m[3]['sum']:
-               print( "same content: ", p )
-               return
+                if args.verbose > 1:
+                    print( "same content: ", p )
+                return
 
-    print( "writing: ", p )
+    if args.verbose > 1:
+        print( "writing: ", p )
     if doit:
        urllib.request.urlretrieve( url, p )    
      
@@ -119,7 +125,9 @@ def mesh_subpub( m, doit=False ):
 
     info = post_client.publish( topic=t, payload=body, qos=1 )
     info.wait_for_publish()
-    print( "published: t=%s, body=%s" % ( t, body ) )
+
+    if args.verbose > 0:
+         print( "published: t=%s, body=%s" % ( t, body ) )
 
 
 rcs = [ "Connection successful", "Connection refused – incorrect protocol version",
@@ -153,10 +161,18 @@ def sub_message(client, userdata, msg):
     mesh_subpub(m,True)
     print( " ")
 
+def pub_log(client, userdata, level, buf):
+    print("pub log:"+buf)
+
+def sub_log(client, userdata, level, buf):
+    print("sub log:"+buf)
 
 client = mqtt.Client( clean_session=False, client_id=args.clientid, protocol=mqtt.MQTTv311 )
 client.on_connect = sub_connect
 client.on_message = sub_message
+
+if args.verbose > 2:
+   client.on_log = sub_log
 
 # subscribing to a peer.
 print('subscribing to  %s/# on %s as client: %s' % ( args.post_exchange + \
@@ -170,12 +186,17 @@ client.connect( sub.hostname )
 
 # get ready to pub.
 post_client = mqtt.Client(protocol=mqtt.MQTTv311)
-post_client.on_connect = pub_connect
+
+if args.verbose > 2:
+    post_client.on_connect = pub_connect
+    client.on_log = pub_log
+
 post_client.loop_start()
 
 pub = urllib.parse.urlparse(args.post_broker)
 if pub.username != None: 
     post_client.username_pw_set( pub.username, pub.password )
+
 post_client.connect( pub.hostname )
 
 print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
