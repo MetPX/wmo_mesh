@@ -287,10 +287,10 @@ experimentation.
 
 2. Ensure configuration directories are present::
 
-   mkdir ~/.config ~/.config/sarra ~/.config/sarra/subscribe ~/.config/sarra/plugins
-   # add credentials to access AMQP pumps.
-   echo "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca" >~/.config/sarra/credentials.conf
-   echo "amqps://anonymous:anonymous@dd.weather.gc.ca" >>~/.config/sarra/credentials.conf
+      mkdir ~/.config ~/.config/sarra ~/.config/sarra/subscribe ~/.config/sarra/plugins
+      # add credentials to access AMQP pumps.
+      echo "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca" >~/.config/sarra/credentials.conf
+      echo "amqps://anonymous:anonymous@dd.weather.gc.ca" >>~/.config/sarra/credentials.conf
  
 2. copy configs present only in git repo, and no released version
 
@@ -301,27 +301,23 @@ experimentation.
      cd ~/.config/sarra/subscribe
      wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/WMO_Sketch_2mqtt.conf
 
-   (as of this writing, the above is only in the git repository. in later versions of Sarracenia,
-    the configurations will be included in examples, so one could replace the above with:
+   As of this writing, the above is only in the git repository. in later versions of Sarracenia ( > 2.19.01b1),
+   the configurations will be included in examples, so one could replace the above with:
 
-    sr_subscribe add WMO_Sketch_2mqtt.conf
-   )
+   sr_subscribe add WMO_Sketch_2mqtt.conf
+    
 
-    what is in the WMO_Sketch_2mqtt.conf file?::
+   what is in the WMO_Sketch_2mqtt.conf file?::
 
     broker amqps://anonymous@hpfx.collab.science.gc.ca   <-- connect to this broker as anonymous user.
     exchange xs_pas037_wmosketch_public                  <-- to this exchange (root topic in MQTT parlance)
-
     no_download                                          <-- only get messages, data download will by done
                                                              by mesh_peer.py
     exp_2mqtt_post_broker mqtt://tsource@localhost       <-- tell plugin the MQTT broker to post to.
     post_exchange xpublic                                <-- tell root of the topic tree to post to.
-
     plugin exp_2mqtt                                     <-- plugin that connects to MQTT instead of AMQP
-
     subtopic #                                           <-- server-side wildcard to say we are interested in everything.
     accept .*                                            <-- client-side wildcard, selects everything.
-
     report_back False                                    <-- do not return telemetry to source.
 
 
