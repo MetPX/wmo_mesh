@@ -176,8 +176,22 @@ Configure Mosquitto
 Configure EMQX
 ~~~~~~~~~~~~~~~
 
+(from David Podeur...)::
 
-start management gui on host:18083
+  here are the installation steps for EMQX on
+  > Ubuntu 18.04
+  > 
+  > wget http://emqtt.io/downloads/latest/ubuntu18_04-deb -O emqx-ubuntu18.04-v3.0.0_amd64.deb
+  > 
+  > sudo dpkg -i emqx-ubuntu18.04-v3.0.0_amd64.deb
+  > sudo systemctl enable emqx
+  > sudo systemctl start emqx
+  > 
+  > URL: http://host:18083
+  > Username: admin
+  > Password: public
+
+use browser to access management gui on host:18083
 
 add users, guest and owner, and set their passwords.
 Add the following to /etc/emqx/acl.conf::
@@ -186,10 +200,9 @@ Add the following to /etc/emqx/acl.conf::
 
  {allow, {user, "owner"}, publish, [ "xpublic/#" ] }.
 
-then just restart::
+to have acl´s take effect, restart::
 
   systemctl restart emqx
-
 
 
 Start Each Peer
