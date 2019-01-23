@@ -186,8 +186,22 @@ Configure Mosquitto
 Configure EMQX
 ~~~~~~~~~~~~~~~
 
+(from David Podeur...)::
 
-start management gui on host:18083
+  here are the installation steps for EMQX on
+  > Ubuntu 18.04
+  > 
+  > wget http://emqtt.io/downloads/latest/ubuntu18_04-deb -O emqx-ubuntu18.04-v3.0.0_amd64.deb
+  > 
+  > sudo dpkg -i emqx-ubuntu18.04-v3.0.0_amd64.deb
+  > sudo systemctl enable emqx
+  > sudo systemctl start emqx
+  > 
+  > URL: http://host:18083
+  > Username: admin
+  > Password: public
+
+use browser to access management gui on host:18083
 
 add users, guest and owner, and set their passwords.
 Add the following to /etc/emqx/acl.conf::
@@ -196,10 +210,9 @@ Add the following to /etc/emqx/acl.conf::
 
  {allow, {user, "owner"}, publish, [ "xpublic/#" ] }.
 
-then just restart::
+to have acl´s take effect, restart::
 
   systemctl restart emqx
-
 
 
 Start Each Peer
@@ -284,10 +297,10 @@ experimentation.
 
 2. Ensure configuration directories are present::
 
-   mkdir ~/.config ~/.config/sarra ~/.config/sarra/subscribe ~/.config/sarra/plugins
-   # add credentials to access AMQP pumps.
-   echo "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca" >~/.config/sarra/credentials.conf
-   echo "amqps://anonymous:anonymous@dd.weather.gc.ca" >>~/.config/sarra/credentials.conf
+      mkdir ~/.config ~/.config/sarra ~/.config/sarra/subscribe ~/.config/sarra/plugins
+      # add credentials to access AMQP pumps.
+      echo "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca" >~/.config/sarra/credentials.conf
+      echo "amqps://anonymous:anonymous@dd.weather.gc.ca" >>~/.config/sarra/credentials.conf
  
 2. copy configs present only in git repo, and no released version
 
@@ -298,27 +311,23 @@ experimentation.
      cd ~/.config/sarra/subscribe
      wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/WMO_Sketch_2mqtt.conf
 
-   (as of this writing, the above is only in the git repository. in later versions of Sarracenia,
-    the configurations will be included in examples, so one could replace the above with:
+   As of this writing, the above is only in the git repository. in later versions of Sarracenia ( > 2.19.01b1),
+   the configurations will be included in examples, so one could replace the above with:
 
-    sr_subscribe add WMO_Sketch_2mqtt.conf
-   )
+   sr_subscribe add WMO_Sketch_2mqtt.conf
+    
 
-    what is in the WMO_Sketch_2mqtt.conf file?::
+   what is in the WMO_Sketch_2mqtt.conf file?::
 
     broker amqps://anonymous@hpfx.collab.science.gc.ca   <-- connect to this broker as anonymous user.
     exchange xs_pas037_wmosketch_public                  <-- to this exchange (root topic in MQTT parlance)
-
     no_download                                          <-- only get messages, data download will by done
                                                              by mesh_peer.py
     exp_2mqtt_post_broker mqtt://tsource@localhost       <-- tell plugin the MQTT broker to post to.
     post_exchange xpublic                                <-- tell root of the topic tree to post to.
-
     plugin exp_2mqtt                                     <-- plugin that connects to MQTT instead of AMQP
-
     subtopic #                                           <-- server-side wildcard to say we are interested in everything.
     accept .*                                            <-- client-side wildcard, selects everything.
-
     report_back False                                    <-- do not return telemetry to source.
 
 
@@ -373,12 +382,12 @@ experimentation.
        2019-01-22 19:43:48,170 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/EGRR/IU, body=["20190123004331.855253", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/EGRR/IU/IUAA01_EGRR_230042_99240486f422b0cb2dcead7819ba8100.bufr", {"parts": "1,249,1,0,0", "atime": "20190123004331.852722168", "mtime": "20190123004331.852722168", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,99240486f422b0cb2dcead7819ba8100", "mode": "664"}]
        2019-01-22 19:43:48,188 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/CWAO/FT, body=["20190123004337.955676", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/CWAO/FT/FTCN31_CWAO_230000_AAA_81bdc927f5545484c32fb93d43dcf3ca.txt", {"parts": "1,182,1,0,0", "atime": "20190123004337.952722788", "mtime": "20190123004337.952722788", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,81bdc927f5545484c32fb93d43dcf3ca", "mode": "664"}]
     
-    as these messages come from Sarracenia, they include a lot more fields.
-    There is also a feed from the current Canadian datamart which has a more eclectic mix of data, but not much in WMO formats:
+   as these messages come from Sarracenia, they include a lot more fields. There is also a feed from 
+   the current Canadian datamart which has a more eclectic mix of data, but not much in WMO formats:
 
         https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/dd_2mqtt.conf
 
-    there will be imagery and Canadian XML's and in a completely different directory tree that is much more difficult
-    to clean.
+   there will be imagery and Canadian XML's and in a completely different directory tree that is much more difficult
+   to clean.
 
-
+k
