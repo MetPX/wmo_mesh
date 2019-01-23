@@ -51,8 +51,18 @@ Boiling it down to this relatively small example makes discussion easier.
    YYYYMMDDHHMMSS (in UTC timezone) followed by a fraction of a second after the 
    decimal place.  
 
-   This is chosen rather than any sort of epochal second cound for readability
+   This is chosen rather than any sort of epochal second count for readability
    and to avoid worrying about leap seconds.
+
+   This format is essentially ISO8601 basic notation. The standard recommends
+   a *T* be placed between date and time, and there is no convention to use a decimal
+   marker for seconds. The use of a decimal marker allows for different users to 
+   give different levels of precision (milliseconds, microseconds, etc...) without
+   changing the standard. 
+
+   In ISO8601 when times do not include a timzone marker, it is assumed to be local.
+   in the meteorological domain, it seems clear the default should be UTC (Z in ISO parlance) 
+   Leaving the Z out seems reasonable.
 
 *  The *baseurl* marks the static starting point to build the complete download URL.
    it represents the root of the download tree on the remote web server.
