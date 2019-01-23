@@ -258,7 +258,117 @@ There are some Canadian data pumps publishing Sarracenia v02 messages over AMQP 
 (rabbitMQ broker) available on the internet. There are various ways of injecting data
 into such a network, using the exp_2mqtt for a Sarracenia subscriber.
 
-(coming soon...)
-  
+The WMO_Sketch_2mqtt.conf file is a sarracenia subscribe that subscribes to messages from
+here:
+
+   https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/
+
+Which is an experimental data mart sandbox for use in trialling directory tree structures.
+It contains an initial tree proposal. The data in the tree is an exposition of a UNIDATA-LDM
+feed used as a quasi-public academic feed for North American universities training meteorologists.
+It provides a good facsimile of what a WMO data exchange might look like, in terms of volume
+and formats. Certain voluminous data sets have been elided from the feed, to ease
+experimentation.
+
+1. `Install Sarracenia <https://github.com/MetPX/sarracenia/blob/master/doc/Install.rst>`_
+
+2. Ensure configuration directories are present::
+
+   mkdir ~/.config ~/.config/sarra ~/.config/sarra/subscribe ~/.config/sarra/plugins
+   # add credentials to access AMQP pumps.
+   echo "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca" >~/.config/sarra/credentials.conf
+   echo "amqps://anonymous:anonymous@dd.weather.gc.ca" >>~/.config/sarra/credentials.conf
+ 
+2. copy configs present only in git repo, and no released version
+
+   recipe::
+
+     cd ~/.config/sarra/plugins
+     wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/plugins/exp_2mqtt.py
+     cd ~/.config/sarra/subscribe
+     wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/WMO_Sketch_2mqtt.conf
+
+   (as of this writing, the above is only in the git repository. in later versions of Sarracenia,
+    the configurations will be included in examples, so one could replace the above with:
+
+    sr_subscribe add WMO_Sketch_2mqtt.conf
+   )
+
+    what is in the WMO_Sketch_2mqtt.conf file?::
+
+    broker amqps://anonymous@hpfx.collab.science.gc.ca   <-- connect to this broker as anonymous user.
+    exchange xs_pas037_wmosketch_public                  <-- to this exchange (root topic in MQTT parlance)
+
+    no_download                                          <-- only get messages, data download will by done
+                                                             by mesh_peer.py
+    exp_2mqtt_post_broker mqtt://tsource@localhost       <-- tell plugin the MQTT broker to post to.
+    post_exchange xpublic                                <-- tell root of the topic tree to post to.
+
+    plugin exp_2mqtt                                     <-- plugin that connects to MQTT instead of AMQP
+
+    subtopic #                                           <-- server-side wildcard to say we are interested in everything.
+    accept .*                                            <-- client-side wildcard, selects everything.
+
+    report_back False                                    <-- do not return telemetry to source.
+
+
+3. Start up the configuration.
+
+   for an initial check, do a first start up of the message transfer client::
+
+       sr_subscribe foreground WMO_Sketch_2mqtt.conf
+
+   After runing for a few seconds, hit ^C to abort. Then start it again in daemon mode::
+
+       sr_subscribe start WMO_Sketch_2mqtt.conf
+
+   and it should be running... logs in ~/.config/sarra/log
+
+   Sample output::
+
+       blacklab% sr_subscribe foreground WMO_Sketch_2mqtt.conf  
+       2019-01-22 19:43:46,457 [INFO] sr_subscribe WMO_Sketch_2mqtt start
+       2019-01-22 19:43:46,457 [INFO] log settings start for sr_subscribe (version: 2.19.01b1):
+       2019-01-22 19:43:46,458 [INFO] 	inflight=.tmp events=create|delete|link|modify use_pika=False topic_prefix=v02.post
+       2019-01-22 19:43:46,458 [INFO] 	suppress_duplicates=False basis=path retry_mode=True retry_ttl=300000ms
+       2019-01-22 19:43:46,458 [INFO] 	expire=300000ms reset=False message_ttl=None prefetch=25 accept_unmatch=False delete=False
+       2019-01-22 19:43:46,458 [INFO] 	heartbeat=300 sanity_log_dead=450 default_mode=000 default_mode_dir=775 default_mode_log=600 discard=False durable=True
+       2019-01-22 19:43:46,458 [INFO] 	preserve_mode=True preserve_time=True realpath_post=False base_dir=None follow_symlinks=False
+       2019-01-22 19:43:46,458 [INFO] 	mirror=False flatten=/ realpath_post=False strip=0 base_dir=None report_back=False
+       2019-01-22 19:43:46,458 [INFO] 	Plugins configured:
+       2019-01-22 19:43:46,458 [INFO] 		do_download: 
+       2019-01-22 19:43:46,458 [INFO] 		do_get     : 
+       2019-01-22 19:43:46,458 [INFO] 		on_message: EXP_2MQTT 
+       2019-01-22 19:43:46,458 [INFO] 		on_part: 
+       2019-01-22 19:43:46,458 [INFO] 		on_file: File_Log 
+       2019-01-22 19:43:46,458 [INFO] 		on_post: Post_Log 
+       2019-01-22 19:43:46,458 [INFO] 		on_heartbeat: Hb_Log Hb_Memory Hb_Pulse RETRY 
+       2019-01-22 19:43:46,458 [INFO] 		on_report: 
+       2019-01-22 19:43:46,458 [INFO] 		on_start: EXP_2MQTT 
+       2019-01-22 19:43:46,458 [INFO] 		on_stop: 
+       2019-01-22 19:43:46,458 [INFO] log_settings end.
+       2019-01-22 19:43:46,459 [INFO] sr_subscribe run
+       2019-01-22 19:43:46,459 [INFO] AMQP  broker(hpfx.collab.science.gc.ca) user(anonymous) vhost()
+       2019-01-22 19:43:46,620 [INFO] Binding queue q_anonymous.sr_subscribe.WMO_Sketch_2mqtt.24347425.16565869 with key v02.post.# from exchange xs_pas037_wmosketch_public on broker amqps://anonymous@hpfx.collab.science.gc.ca
+       2019-01-22 19:43:46,686 [INFO] reading from to anonymous@hpfx.collab.science.gc.ca, exchange: xs_pas037_wmosketch_public
+       2019-01-22 19:43:46,687 [INFO] report_back suppressed
+       2019-01-22 19:43:46,687 [INFO] sr_retry on_heartbeat
+       2019-01-22 19:43:46,688 [INFO] No retry in list
+       2019-01-22 19:43:46,688 [INFO] sr_retry on_heartbeat elapse 0.001044
+       2019-01-22 19:43:46,689 [ERROR] exp_2mqtt: authenticating as tsource 
+       2019-01-22 19:43:48,101 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/KWNB/SX, body=["20190123004338.097888", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/KWNB/SX/SXUS22_KWNB_230000_RRX_e12080ee6aaf254ab0cd97069be3812b.txt", {"parts": "1,278,1,0,0", "atime": "20190123004338.0927228928", "mtime": "20190123004338.0927228928", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,e12080ee6aaf254ab0cd97069be3812b", "mode": "664"}]
+       2019-01-22 19:43:48,119 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/KOUN/US, body=["20190123004338.492952", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/KOUN/US/USUS44_KOUN_230000_4d4e58041d682ad6fe59ca9410bb85f4.txt", {"parts": "1,355,1,0,0", "atime": "20190123004338.488722801", "mtime": "20190123004338.488722801", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,4d4e58041d682ad6fe59ca9410bb85f4", "mode": "664"}]
+       2019-01-22 19:43:48,136 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/KWNB/SM, body=["20190123004338.052487", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/KWNB/SM/SMVD15_KWNB_230000_RRM_630547d96cf1a4f530bd2908d7bfe237.txt", {"parts": "1,2672,1,0,0", "atime": "20190123004338.048722744", "mtime": "20190123004338.048722744", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,630547d96cf1a4f530bd2908d7bfe237", "mode": "664"}]
+       2019-01-22 19:43:48,152 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/KWNB/SO, body=["20190123004338.390638", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/KWNB/SO/SOVD83_KWNB_230000_RRX_8e94b094507a318bc32a0407a96f37a4.txt", {"parts": "1,107,1,0,0", "atime": "20190123004338.388722897", "mtime": "20190123004338.388722897", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,8e94b094507a318bc32a0407a96f37a4", "mode": "664"}]
+       2019-01-22 19:43:48,170 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/EGRR/IU, body=["20190123004331.855253", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/EGRR/IU/IUAA01_EGRR_230042_99240486f422b0cb2dcead7819ba8100.bufr", {"parts": "1,249,1,0,0", "atime": "20190123004331.852722168", "mtime": "20190123004331.852722168", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,99240486f422b0cb2dcead7819ba8100", "mode": "664"}]
+       2019-01-22 19:43:48,188 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/CWAO/FT, body=["20190123004337.955676", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/CWAO/FT/FTCN31_CWAO_230000_AAA_81bdc927f5545484c32fb93d43dcf3ca.txt", {"parts": "1,182,1,0,0", "atime": "20190123004337.952722788", "mtime": "20190123004337.952722788", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,81bdc927f5545484c32fb93d43dcf3ca", "mode": "664"}]
+    
+    as these messages come from Sarracenia, they include a lot more fields.
+    There is also a feed from the current Canadian datamart which has a more eclectic mix of data, but not much in WMO formats:
+
+        https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/dd_2mqtt.conf
+
+    there will be imagery and Canadian XML's and in a completely different directory tree that is much more difficult
+    to clean.
 
 
