@@ -93,9 +93,7 @@ def mesh_subpub( m, doit=False ):
     
     p =  d + '/' + fname 
 
-    FirstTime=True
     if os.path.exists( p ):
-        FirstTime=False
         if args.verbose > 1:
             print( "file exists: %s. Should we download? " % p )
 
@@ -113,11 +111,7 @@ def mesh_subpub( m, doit=False ):
     if doit:
        urllib.request.urlretrieve( url, p )    
      
-    if FirstTime:
-       if 'sum' in m[3].keys():
-           xattr.setxattr(p, sxa, bytes(m[3]['sum'],'utf-8') )
-       else:
-           sum_file(p, m[3]['sum'][0] )
+    sum_file(p, m[3]['sum'][0] )
 
     # after download, publish for others.
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
