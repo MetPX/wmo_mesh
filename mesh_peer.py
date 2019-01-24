@@ -137,7 +137,7 @@ def mesh_subpub( m ):
     if not os.path.isdir(d): 
         os.makedirs(d)
     
-    p =  d + '/' + fname 
+    p =  (d + '/' + fname).replace('//','/') 
 
     if os.path.exists( p ):
         if args.verbose > 1:
