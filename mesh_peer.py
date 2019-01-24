@@ -9,6 +9,8 @@ from hashlib import sha512
 
 import argparse
 
+import re
+
 # name of the extended attribute to cache checksums in when calculated
 sxa = 'user.sr_sum'
 host = platform.node()
@@ -25,8 +27,45 @@ parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', h
 parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic tree to announce')
 parser.add_argument('--post_topic_prefix', default='/v03/post', help='allows simultaneous use of multiple versions and types of messages')
+parser.add_argument('--select', nargs=1, action='append', help='client-side filtering: accept/reject <regexp>' )
+parser.add_argument('--subtopic', nargs=1, action='append', help='server-side filtering: MQTT subtopic, wilcards # to match rest, + to match one topic' )
 
 args = parser.parse_args()
+
+if args.verbose > 3:
+    print( "args: %s" % args )
+
+if args.post_broker.lower() == 'none' :
+     args.post_broker=None
+
+if args.subtopic==None:
+   args.subtopic=[ '#' ]
+
+masks = []
+for s in args.select :
+   sel = s[0].split()
+   if sel[0] in [ 'accept', 'reject' ]:
+       r = re.compile(sel[1])
+       m = ( sel[0], r )
+   else:
+       m = ( sel[0] )
+   masks.append(m)
+
+if args.verbose > 2:
+    print( "masks: %s" % masks )
+
+def URLSelected( u ):
+    """
+      implement client side selection.
+      apply accept/reject patterns, return True if selected, false if rejected.
+      no match? return true.
+    """
+    global masks
+    for m in masks:
+        if m[0] in [ 'accept', 'reject' ]:
+           if m[1].match(u):
+              return ( m[0] == 'accept' )
+    return True
 
 def timestr2flt( s ):
     """
@@ -79,6 +118,11 @@ def mesh_subpub( m ):
 
     url = m[1] + '/' + m[2]
 
+    if not URLSelected( url ):
+       if args.verbose > 1:
+           print( "rejected", url )
+       return
+
     fname=os.path.basename(m[2])
 
     if not os.path.isdir(d): 
@@ -116,6 +160,9 @@ def mesh_subpub( m ):
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
     body = json.dumps( ( m[0], args.post_baseurl, m[2], m[3]) )
 
+    if args.post_broker == None:
+         return
+
     info = post_client.publish( topic=t, payload=body, qos=1 )
     info.wait_for_publish()
 
@@ -134,9 +181,11 @@ def pub_connect(client, userdata, flags, rc):
     print( "on publishing:", rcs[rc] )
 
 def sub_connect(client, userdata, flags, rc):
+    global args
     if rc > 5: rc=6
     print( "on connection to subscribe:", rcs[rc] )
-    client.subscribe( args.post_exchange + args.post_topic_prefix + '/#' )
+    for s in args.subtopic:
+        client.subscribe( args.post_exchange + args.post_topic_prefix + '/' + s )
 
 def pub_connect(client, userdata, flags, rc):
     print("pub connected with result code "+str(rc))
@@ -186,11 +235,12 @@ if args.verbose > 2:
 
 post_client.loop_start()
 
-pub = urllib.parse.urlparse(args.post_broker)
-if pub.username != None: 
-    post_client.username_pw_set( pub.username, pub.password )
+if args.post_broker != None:
+    pub = urllib.parse.urlparse(args.post_broker)
+    if pub.username != None: 
+        post_client.username_pw_set( pub.username, pub.password )
 
-post_client.connect( pub.hostname )
+    post_client.connect( pub.hostname )
 
 print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
 
