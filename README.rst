@@ -390,3 +390,23 @@ experimentation.
    there will be imagery and Canadian XML's and in a completely different directory tree that is much more difficult
    to clean.
 
+4. Does it work?
+
+   Hard to tell. If you set up passwordless ssh between the nodes, you can generate some gross level reports like so::
+
+      blacklab% for i in blacklab awzz bwqd cwnp; do ssh $i du -sh wmo_mesh/data/*| awk ' { printf "%10s %5s %s\n", "'$i'", $1, $2 ; };' ; done | sort -r -k 3
+          cwnp   31M wmo_mesh/data/2019012419
+          bwqd   29M wmo_mesh/data/2019012419
+      blacklab   29M wmo_mesh/data/2019012419
+          awzz   29M wmo_mesh/data/2019012419
+          cwnp   29M wmo_mesh/data/2019012418
+          bwqd   28M wmo_mesh/data/2019012418
+      blacklab   28M wmo_mesh/data/2019012418
+          awzz   28M wmo_mesh/data/2019012418
+          cwnp   32M wmo_mesh/data/2019012417
+          bwqd   32M wmo_mesh/data/2019012417
+      blacklab   31M wmo_mesh/data/2019012417
+          awzz   32M wmo_mesh/data/2019012417
+      blacklab%
+
+   So, not perfect... well that's how things are right now...
