@@ -18,6 +18,7 @@ host = platform.node()
 parser=argparse.ArgumentParser(description='Subscribe to one peer, and post what is downloaded')
 
 parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@host of peer to subscribe to')
+parser.add_argument('--clean_session', type=bool, default=False, help='start a new session, or resume old one?')
 parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
 parser.add_argument('--verbose', default=1, type=int, help='how chatty to be 0-rather quiet ... 3-quite chatty really')
 
@@ -40,6 +41,11 @@ if args.post_broker.lower() == 'none' :
 
 if args.subtopic==None:
    args.subtopic=[ '#' ]
+else:
+   args.subtopic=sum(args.subtopic,[])
+
+if args.verbose > 3:
+    print( "subtopics: %s" % args.subtopic )
 
 masks = []
 
@@ -55,6 +61,7 @@ if args.select:
 
 if args.verbose > 2:
     print( "masks: %s" % masks )
+
 
 def URLSelected( u ):
     """
@@ -187,7 +194,10 @@ def sub_connect(client, userdata, flags, rc):
     if rc > 5: rc=6
     print( "on connection to subscribe:", rcs[rc] )
     for s in args.subtopic:
-        client.subscribe( args.post_exchange + args.post_topic_prefix + '/' + s )
+        subj = args.post_exchange + args.post_topic_prefix + '/' + s
+        if args.verbose > 1:
+           print( "subtopic:", subj )
+        client.subscribe( subj )
 
 def pub_connect(client, userdata, flags, rc):
     print("pub connected with result code "+str(rc))
@@ -211,7 +221,7 @@ def pub_log(client, userdata, level, buf):
 def sub_log(client, userdata, level, buf):
     print("sub log:"+buf)
 
-client = mqtt.Client( clean_session=False, client_id=args.clientid, protocol=mqtt.MQTTv311 )
+client = mqtt.Client( clean_session=args.clean_session, client_id=args.clientid, protocol=mqtt.MQTTv311 )
 client.on_connect = sub_connect
 client.on_message = sub_message
 
@@ -244,7 +254,7 @@ if args.post_broker != None:
 
     post_client.connect( pub.hostname )
 
-print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
+    print('ready to post to %s as %s' % ( pub.hostname, pub.username ))
 
 client.loop_forever()
 
