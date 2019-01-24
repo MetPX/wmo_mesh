@@ -42,14 +42,16 @@ if args.subtopic==None:
    args.subtopic=[ '#' ]
 
 masks = []
-for s in args.select :
-   sel = s[0].split()
-   if sel[0] in [ 'accept', 'reject' ]:
-       r = re.compile(sel[1])
-       m = ( sel[0], r )
-   else:
-       m = ( sel[0] )
-   masks.append(m)
+
+if args.select:
+    for s in args.select :
+        sel = s[0].split()
+        if sel[0] in [ 'accept', 'reject' ]:
+            r = re.compile(sel[1])
+            m = ( sel[0], r )
+        else:
+            m = ( sel[0] )
+        masks.append(m)
 
 if args.verbose > 2:
     print( "masks: %s" % masks )
