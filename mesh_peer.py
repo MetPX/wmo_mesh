@@ -91,7 +91,7 @@ def mesh_subpub( m, doit=False ):
         if args.verbose > 1:
             print( "file exists: %s. Should we download? " % p )
 
-        a = xattr.xattr( filename )
+        a = xattr.xattr( p )
         if sxa in a.keys():
            if args.verbose > 1:
                print( "retrieving sum" )
