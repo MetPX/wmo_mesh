@@ -49,8 +49,8 @@ for f in args.file:
     d = f.read()
     f.close()
      
-    hash = md5()
-    hash.update(d)
+    h = md5()
+    h.update(d)
     
     now=time.time()
     nsec = ('%.9g' % (now%1))[1:]
@@ -60,7 +60,7 @@ for f in args.file:
     if relpath[0] == '/':
         relpath= relpath[1:]
     
-    p = json.dumps( (datestamp, args.post_baseurl, relpath, { "sum":"d,"+hash.hexdigest() } )) 
+    p = json.dumps( (datestamp, args.post_baseurl, relpath, { "sum":"d,"+h.hexdigest() } )) 
     
     if os.path.dirname(relpath) == '/':
         subtopic=''

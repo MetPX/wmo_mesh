@@ -45,15 +45,9 @@ def sum_file( filename, algo ):
     """
     global sxa,args
 
-
-    a = xattr.xattr( filename )
-    if sxa in a.keys():
-        if args.verbose > 1:
-            print( "retrieving sum" )
-        return a[sxa].decode('utf-8')
- 
     if args.verbose > 1:
         print( "calculating sum" )
+
     if algo in [ 'd', 's' ]:
         f = open(filename,'rb')
         d = f.read()
@@ -62,12 +56,12 @@ def sum_file( filename, algo ):
         d=filename
  
     if algo in [ 'd', 'n']:
-        hash = md5()
+        h = md5()
     elif algo is 's':
-        hash = sha512()
+        h = sha512()
 
-    hash.update(d) 
-    sf = algo + ',' + hash.hexdigest()
+    h.update(d) 
+    sf = algo + ',' + h.hexdigest()
     xattr.setxattr(filename, sxa, bytes(sf,'utf-8') )
     return sf
     
@@ -97,7 +91,14 @@ def mesh_subpub( m, doit=False ):
         if args.verbose > 1:
             print( "file exists: %s. Should we download? " % p )
 
-        sumstr = sum_file(p, m[3]['sum'][0] )
+        a = xattr.xattr( filename )
+        if sxa in a.keys():
+           if args.verbose > 1:
+               print( "retrieving sum" )
+           sumstr = a[sxa].decode('utf-8')
+        else: 
+           sumstr = sum_file(p, m[3]['sum'][0] )
+
         print( "hash: %s" % sumstr )
         if sumstr == m[3]['sum']:
             if args.verbose > 1:
