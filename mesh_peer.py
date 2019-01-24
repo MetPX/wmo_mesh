@@ -67,7 +67,7 @@ def sum_file( filename, algo ):
     
 
 
-def mesh_subpub( m, doit=False ):
+def mesh_subpub( m ):
     """
        If it isn't already here, download the file announced by the message m.
        If you download it, then publish to  the local broker.
@@ -81,7 +81,7 @@ def mesh_subpub( m, doit=False ):
 
     fname=os.path.basename(m[2])
 
-    if not os.path.isdir(d) and doit:
+    if not os.path.isdir(d): 
         os.makedirs(d)
         pass
     
@@ -107,9 +107,9 @@ def mesh_subpub( m, doit=False ):
     if args.verbose > 1:
         print( "writing: ", p )
 
-    if doit:
-       urllib.request.urlretrieve( url, p )    
-       sumstr = sum_file(p, m[3]['sum'][0] )
+    urllib.request.urlretrieve( url, p )    
+    # calculate actual checksum, regardless of what the message says.
+    sumstr = sum_file(p, m[3]['sum'][0] )
      
     m[3]['sum'] = sumstr
 
