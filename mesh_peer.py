@@ -83,7 +83,6 @@ def mesh_subpub( m ):
 
     if not os.path.isdir(d): 
         os.makedirs(d)
-        pass
     
     p =  d + '/' + fname 
 
@@ -152,7 +151,7 @@ def sub_message(client, userdata, msg):
     print( "  topic: ", msg.topic )
     print( "payload: ", m )
 
-    mesh_subpub(m,True)
+    mesh_subpub(m)
     print( " ")
 
 def pub_log(client, userdata, level, buf):
