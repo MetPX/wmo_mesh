@@ -97,21 +97,20 @@ def mesh_subpub( m, doit=False ):
         if args.verbose > 1:
             print( "file exists: %s. Should we download? " % p )
 
-        if 'sum' in m[3].keys():
-
-            sumstr = sum_file(p, m[3]['sum'][0] )
-            print( "hash: %s" % sumstr )
-            if sumstr == m[3]['sum']:
-                if args.verbose > 1:
-                    print( "same content: ", p )
-                return
-
+        sumstr = sum_file(p, m[3]['sum'][0] )
+        print( "hash: %s" % sumstr )
+        if sumstr == m[3]['sum']:
+            if args.verbose > 1:
+                print( "same content: ", p )
+            return
     if args.verbose > 1:
         print( "writing: ", p )
+
     if doit:
        urllib.request.urlretrieve( url, p )    
+       sumstr = sum_file(p, m[3]['sum'][0] )
      
-    sum_file(p, m[3]['sum'][0] )
+    m[3]['sum'] = sumstr
 
     # after download, publish for others.
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
