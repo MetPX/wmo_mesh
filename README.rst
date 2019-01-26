@@ -47,23 +47,20 @@ Entire format is human readable::
 Boiling it down to this relatively small example makes discussion easier.
 
 *  The *datestamp* marks when the file was posted on the first broker in the network.
-   This allows easy calculcation of propagation delay across any number of nodes.
+   This allows easy calculation of propagation delay across any number of nodes.
    The date format looks like a floating point number,  but is the conventional 
    YYYYMMDDHHMMSS (in UTC timezone) followed by a fraction of a second after the 
    decimal place.  
 
    This is chosen rather than any sort of epochal second count for readability
-   and to avoid worrying about leap seconds.
+   and to avoid worrying about leap seconds. This format is essentially ISO8601 
+   basic notation. The standard recommends a *T* be placed between date and time, 
+   and there is no convention to use a decimal marker for seconds. The use of a 
+   decimal marker allows for different users to give different levels of 
+   precision (milliseconds, microseconds, etc...) without ambiguity.
 
-   This format is essentially ISO8601 basic notation. The standard recommends
-   a *T* be placed between date and time, and there is no convention to use a decimal
-   marker for seconds. The use of a decimal marker allows for different users to 
-   give different levels of precision (milliseconds, microseconds, etc...) without
-   changing the standard. 
-
-   In ISO8601 when times do not include a timzone marker, it is assumed to be local.
-   in the meteorological domain, it seems clear the default should be UTC (Z in ISO parlance) 
-   Leaving the Z out seems reasonable.
+   In ISO8601 when times do not include a timezone marker, it is assumed to be local.
+   In the meteorological domain, UTC is more natural. Leaving the Z out seems reasonable.
 
 *  The *baseurl* marks the static starting point to build the complete download URL.
    it represents the root of the download tree on the remote web server.
@@ -157,7 +154,7 @@ Configure a Message Broker
 --------------------------
 
 A message broker of some kind needs to be configured.
-The demontration only works with MQTT brokers.  One needs 
+The demonstration only works with MQTT brokers.  One needs 
 to define at least two users:
 
   - one subscriber (guest), able to read from xpublic/#
@@ -391,6 +388,9 @@ experimentation.
    there will be imagery and Canadian XML's and in a completely different directory tree that is much more difficult
    to clean.
 
+   Note that the *source* field is set, in this feed, to *UCAR-UNIDATA*, which is the local name in ECCC
+   for this data source. One would expect the CCCC of the centre injecting the data to be provided in this field.
+
 4. Does it work?
 
    Hard to tell. If you set up passwordless ssh between the nodes, you can generate some gross level reports like so::
@@ -450,4 +450,11 @@ Demo Limitations
   
 * **credentials in command-line** better practice to put them in a separate file, as Sarracenia does.
 
+* **logging**, in Sarracenia, logs are available for the dozens of daemons running in a real deployment.
+  they are rotated daily, and retention is configurable.  The demo writes to standard output and error streams.
+  the logs also provide timestamps in the timezone preferred. 
 
+* **python** everything is in python in this demo, which is relatively resource intensive and 
+  will not obtain optimal performance. Sarracenia, for example, allows for optimized plugins to 
+  replace python processing where appropriate.  on the other hand, a raspberry pi is very constrained
+  and keeping up with an impressive flow with little apparent load. 
