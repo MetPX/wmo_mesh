@@ -27,9 +27,6 @@ This demonstration is done with MQTT protocol which is more
 interoperable than the more robust AMQP protocol. It is intended
 to demonstrate the algorithm and the method, not for production use.
 
-Security has not been thoroughly examined yet. In this version everyone
-copies everything from everyone else.
-
 .. contents::
 
 
@@ -423,12 +420,17 @@ Demo Limitations
 
 * **volume limited to what can be handled by a single process.** Sarracenia *instances* option allows 
   use of arbitrary number of workers to share downloads, higher aggregate performance 
-  with less management.
+  with less management. This is enabled by AMQP's use of *queue* naming, where instanaces just
+  specify the same queue to share a load. No analogous feature has been identified in MQTTv311
+  (currently most widely deployed ISO standard version) v5 has *shared subscriptions* but not
+  clear how that works yet.
 
-* **if urlretrieve fails the demo dies**. Sarracenia has extensive logic to tolerate and recover
-  gracefully without spamming the source, and while preferring newer data to missing old data.
+* **if urlretrieve fails, demo dies**. Sarracenia has extensive logic to tolerate and recover
+  failures gracefully without spamming the source, and while preferring newer data to missing old data.
 
 * **The same tree everywhere.** Sarracenia has extensive support for transforming the tree on the fly.
+  not everyone will be happy with any tree that is specified, being able to transform the tree
+  makes adoption easier for usage apart from WMO nodes.
 
 * **No broker management.** Sarracenia incorporates user permissions management of a rabbitmq broker,
   so the broker can be entirely managed, after initial setup, with the application. it implements
