@@ -20,9 +20,6 @@ What is the Mesh?
 * each one downloads data it does not already have (different checksums)
   from peer brokers, and announces those downloads locally for other peers.
 
-* peers who feel data is too *late* just add subscriptions to more peers.
-  and/or run multiple mesh_peer.py processes to the same peer (sharing the client_id) 
-
 As long as there is at least one transitive path between all peers, 
 all peers will get all data.
 
