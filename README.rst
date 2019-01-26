@@ -1,17 +1,18 @@
 
 Status: working.
 
+
 ==================================================
 Minimal Demonstration of Mesh network over Pub/Sub
 ==================================================
 
-Inform peers who subscribe about data made available in a well understood
+Inform peers who subscribe to data made available in a well understood
 common tree. Peers download data announced by others, and re-announce 
 in turn for their subscribers.
 
 What is the Mesh?  
 
-* A reasonable subset peers may operate brokers to publish and subscribe to each other.  
+* A reasonable subset of peers may operate brokers to publish and subscribe to each other.  
 
 * when a peer announces a message, it looks for the file in its tree.
   If it is there, it compares the checksum to the one announced.
@@ -32,8 +33,14 @@ to demonstrate the algorithm and the method, not for production use.
 Security has not been thoroughly examined yet. In this version everyone
 copies everything from everyone else.
 
+.. contents::
+
+
+Message Format
+==============
+
 The message format used is a minimal subset with the same semantics
-as the one in use a few years in `Sarracenia <https://github.com/MetPX/sarracenia>`_
+as the one in use for a few years in `Sarracenia <https://github.com/MetPX/sarracenia>`_
 The main change being a switch from AMQP-specific packing, to a
 protocol agnostic JSON encoding describer here
 
@@ -410,3 +417,38 @@ experimentation.
       blacklab%
 
    So, not perfect... well that's how things are right now...
+
+
+Demo Limitations 
+================
+
+* **Retrievel is http or https only** not SFTP, or ftp, or ftps. (Sarracenia does all of them.)
+
+* **volume limited to what can be handled by a single process.** Sarracenia *instances* option allows 
+  use of arbitrary number of workers to share downloads, higher aggregate performance 
+  with less management.
+
+* **if urlretrieve fails the demo dies**. Sarracenia has extensive logic to tolerate and recover
+  gracefully without spamming the source, and while preferring newer data to missing old data.
+
+* **The same tree everywhere.** Sarracenia has extensive support for transforming the tree on the fly.
+
+* **No broker management.** Sarracenia incorporates user permissions management of a rabbitmq broker,
+  so the broker can be entirely managed, after initial setup, with the application. it implements
+  a flexible permission scheme that is onerous to do manually.
+  In the demo, access permissions must be done manually. 
+
+* **please supply real web server** demo uses python web server whose sole virtue is simplicity.  
+  For deployment, a real web server, such as apache, or nginx is recommended.
+
+* **anyone can share any data from anywhere** demo allows any node to post data anywhere in the tree.
+  It is a deployment detail that some countries will want to restrict who can post on whose behalf.
+  an example basis of such restriction is the *select* argument. allowing one to allow only
+  certain parts of the tree to come from certain peers, if that is desired.
+
+  One could build a worldwide list, shared among WMO partners, of which node is allowed to originate
+  data for a given CCCC.  One could also 
+  
+* **credentials in command-line** better practice to put them in a separate file, as Sarracenia does.
+
+
