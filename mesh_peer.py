@@ -89,7 +89,7 @@ def timestr2flt( s ):
 def sum_file( filename, algo ):
     """
       calculate the checksum of a file using the given algorithm. return a sum header.
-      side effect: stores the checksum in a file attribute, if the sum is already available there, then use it.
+      side effect: stores the checksum in a file attribute
     """
     global sxa,args
 
@@ -113,6 +113,32 @@ def sum_file( filename, algo ):
     xattr.setxattr(filename, sxa, bytes(sf,'utf-8') )
     return sf
     
+def download( url, p, old_sum, new_sum ):
+    """
+       download URL into a local file p, checksum it upon receipt. 
+       complain if download failed, perhaps retry.
+      
+       do 3 attempts, then give up.
+    """
+
+    sumstr=None
+    attempt=0
+    while attempt < 3 :
+        if args.verbose > 1:
+             print( "writing attempt %s: %s" % (attempt, p) )
+
+        urllib.request.urlretrieve( url, p )    
+        if os.path.exists( p ):
+            # calculate actual checksum, regardless of what the message says.
+            sumstr = sum_file(p, new_sum[0] )
+            if (sumstr != new_sum ):
+                print( "checksum mismatch on download", p )
+            if (sumstr != old_sum ): # the 
+                attempt=99 
+        else:
+            attempt = attempt +1
+
+    return sumstr
 
 
 def mesh_subpub( m ):
@@ -143,26 +169,29 @@ def mesh_subpub( m ):
         if args.verbose > 1:
             print( "file exists: %s. Should we download? " % p )
 
+        #retrieve old checksum from file extended attribute.
         a = xattr.xattr( p )
         if sxa in a.keys():
            if args.verbose > 1:
                print( "retrieving sum" )
-           sumstr = a[sxa].decode('utf-8')
+           old_sum = a[sxa].decode('utf-8')
         else: 
-           sumstr = sum_file(p, m[3]['sum'][0] )
+           old_sum = sum_file(p, m[3]['sum'][0] )
 
-        print( "hash: %s" % sumstr )
-        if sumstr == m[3]['sum']:
+        print( "hash: %s" % old_sum )
+        if old_sum == m[3]['sum']:
             if args.verbose > 1:
                 print( "same content: ", p )
             return
-    if args.verbose > 1:
-        print( "writing: ", p )
+    else:
+        old_sum = 'd,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
 
-    urllib.request.urlretrieve( url, p )    
-    # calculate actual checksum, regardless of what the message says.
-    sumstr = sum_file(p, m[3]['sum'][0] )
-     
+    sumstr = download( url, p, old_sum, m[3]['sum'] )
+
+    if ( sumstr is None ): 
+       print( 'download failed')
+       return
+ 
     m[3]['sum'] = sumstr
 
     # after download, publish for others.

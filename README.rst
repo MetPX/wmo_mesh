@@ -234,7 +234,7 @@ Start mesh_peer.py
     
 In a shell window on start::
 
-   # ./mesh_peer.py -broker mqtt://guest:guestpw@peer_to_subscribe_to -post_broker mqtt://owner:ownerpw@this_host 
+   # ./mesh_peer.py --verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
 
 it will download data under the *data/* sub-directory, and publish it on this_host's broker. 
 
@@ -458,3 +458,13 @@ Demo Limitations
   will not obtain optimal performance. Sarracenia, for example, allows for optimized plugins to 
   replace python processing where appropriate.  on the other hand, a raspberry pi is very constrained
   and keeping up with an impressive flow with little apparent load. 
+
+* demo reads every file twice, once to download, once to checksum. Checksum is then cached
+  in an extended attribute, which makes it non-portable to Windows. Sarracenia usually checksums
+  files are they are downloaded (unless an accellerated binary downloader plugin is used.)
+  avoiding one read.
+
+* demo reads every file into memory. Chunking would be more efficient and is done by 
+  Sarracenia.
+
+
