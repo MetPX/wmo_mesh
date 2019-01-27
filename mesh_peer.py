@@ -127,7 +127,12 @@ def download( url, p, old_sum, new_sum ):
         if args.verbose > 1:
              print( "writing attempt %s: %s" % (attempt, p) )
 
-        urllib.request.urlretrieve( url, p )    
+        try:
+            urllib.request.urlretrieve( url, p )    
+
+        except Exception as ex:
+            print(ex)
+
         if os.path.exists( p ):
             # calculate actual checksum, regardless of what the message says.
             sumstr = sum_file(p, new_sum[0] )
@@ -226,7 +231,7 @@ def sub_connect(client, userdata, flags, rc):
         subj = args.post_exchange + args.post_topic_prefix + '/' + s
         if args.verbose > 1:
            print( "subtopic:", subj )
-        client.subscribe( subj )
+        client.subscribe( subj , qos=1 )
 
 def pub_connect(client, userdata, flags, rc):
     print("pub connected with result code "+str(rc))

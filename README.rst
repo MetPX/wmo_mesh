@@ -427,6 +427,7 @@ Demo Limitations
 
 * **if urlretrieve fails, demo dies**. Sarracenia has extensive logic to tolerate and recover
   failures gracefully without spamming the source, and while preferring newer data to missing old data.
+  have added some retry logic to the demo, not sure if it works.
 
 * **The same tree everywhere.** Sarracenia has extensive support for transforming the tree on the fly.
   not everyone will be happy with any tree that is specified, being able to transform the tree
