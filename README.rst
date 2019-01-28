@@ -166,19 +166,55 @@ on three raspberry pi's.
 Configure Mosquitto
 ~~~~~~~~~~~~~~~~~~~
 
-    sudo editor /etc/mosquitto/conf.d/mesh.conf
+Mosquitto by default comes set for memory-constrained devices with lossy flows, where 
+lost messares are quickly replaced, and queues simply use memory and are only to support a few 
+seconds (100 messages) of backlog. For the WMO mesh application, we want much more asynchrony 
+in the message flows, and the systems in question have much more memory, so we need to increase 
+the amount of queueing the broker does.
 
-    add::
+In homage to the WMO-386, maximum message size is set to 500000 bytes (down from 500 MB), this
+should not be a practical issue as no file data is sent through these messages.
+
+sudo editor /etc/mosquitto/conf.d/mesh.conf
+
+add::
 
         password_file /etc/mosquitto/pwfile
+        max_inflight_messages 1000
+        max_queued_messages 1000000
+        message_size_limit 500000
+        upgrade_outgoing_qos True
 
-    then run::
+
+then run::
 
        # sudo touch /etc/mosquitto/pwfile
        # sudo mosquitto_passwd -b /etc/mosquitto/pwfile owner ownerpw
        # sudo mosquitto_passwd -b /etc/mosquitto/pwfile guest guestpw
        # systemctl restart mosquitto
        # systemctl status mosquitto
+
+A server can identify when a client is not processing quickly enough by looking 
+in the log (tail /var/log/mosquitto/mosquitto.log )::
+
+   1548600001: New client connected from 172.25.5.170 as 30d4c97c-005a-4e32-a32a-a8765e33483f (c1, k60, u'owner').
+   1548600909: Outgoing messages are being dropped for client AWZZ.
+   1548601169: Saving in-memory database to /var/lib/mosquitto/mosquitto.db.
+
+note::
+  to convert epochal time stamp in mosquitto.log:
+  
+  blacklab% TZ=GMT0 date -d '@1548601169'
+  Sun Jan 27 14:59:29 GMT 2019
+  blacklab%
+
+The above shows the slower, 1st gen raspberry pi is unable to keep up with the message flow
+using only single peer. With Sarracenia, one would add *instances* here to have multiple
+workers to solve this problem. The limitation is not the demonstration, but rather
+MQTT itself, which doesn't permit multiple workers to consume from the same queue
+as AMQP does.  However we can add a subscription to a second peer to double the amount
+of downloading the slow pi does, and it helps quite a bit.
+
 
 
 Configure EMQX
@@ -212,6 +248,8 @@ to have acl´s take effect, restart::
 
   systemctl restart emqx
 
+EQMX seems to come by default with sufficient queueing & bufferring not to lose messages
+in the tests.
 
 Start Each Peer
 ---------------
@@ -468,4 +506,9 @@ Demo Limitations
 * demo reads every file into memory. Chunking would be more efficient and is done by 
   Sarracenia.
 
+* The client cannot tell if messages have been lost. MQTT has limited buffering,
+  and it will discard messages and note that on the server log. Client has no
+  way of knowing that there are messages missing.  One could add administrative
+  messages to the protocol to warn of such things in a different topic hierarchy
+  using a separate consumer.  That hierarchy would have very low traffic.
 
