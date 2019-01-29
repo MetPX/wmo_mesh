@@ -116,7 +116,7 @@ Obtain a Server:
     # raspi-config
 
       - expand file system 
-j
+ 
       - pick keyboard layout (En US)
 
     - reboot
