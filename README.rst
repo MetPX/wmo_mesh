@@ -110,19 +110,22 @@ Obtain a Server:
 ----------------
 
   - for example, a raspberry pi.
-    - obtain raspberry pi.
+
     - install base raspbian from img ( 2018-11-13-raspbian-stretch-lite.img )
 
     # raspi-config
-    - expand file system 
-    - pick keyboard layout (En US)
+
+      - expand file system 
+j
+      - pick keyboard layout (En US)
+
     - reboot
 
   - do network settings.
-  - configure nework
+
   - update hostlist for actual addresses. 
 
-any server running debian stretch is equivalent.  Ubuntu 18.04 is fine also.
+any server running debian stretch is equivalent. Ubuntu 18.04 is fine also.
 Installation instructions will vary by distribution. 
 
 
@@ -132,7 +135,7 @@ things to install on debian:
 
 - sudo apt install python3-paho-mqtt  # available on ubuntu >18.04, but not in debian stretch
 
-- use pip for what you cannot find in repositories::
+- use pip3 for what you cannot find in repositories::
 
    # pip3 install paho-mqtt
    Collecting paho-mqtt
@@ -184,7 +187,6 @@ add::
         max_queued_messages 1000000
         message_size_limit 500000
         upgrade_outgoing_qos True
-
 
 then run::
 
