@@ -159,7 +159,7 @@ def mesh_subpub( m ):
     lag = time.time() - timestr2flt( m[0] )
 
     if lag > 120 : # picked a number of 2 minutes...
-       print( "WARNING: lag is %g, risk of message loss from server-side queueing." )
+       print( "WARNING: lag is %g seconds, risk of message loss from server-side queueing." % lag )
 
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
 
