@@ -20,16 +20,18 @@ parser=argparse.ArgumentParser(description='Subscribe to one peer, and post what
 parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@host of peer to subscribe to')
 parser.add_argument('--clean_session', type=bool, default=False, help='start a new session, or resume old one?')
 parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
-parser.add_argument('--verbose', default=1, type=int, help='how chatty to be 0-rather quiet ... 3-quite chatty really')
+parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
+parser.add_argument('--lag_warn', default=120, type=int, help='in seconds, warn if messages older than that')
+parser.add_argument('--lag_drop', default=7200, type=int, help='in seconds, drop messages older than that')
 
 # the web server address for the source of the locally published tree.
 parser.add_argument('--post_broker', default='mqtt://' + host, help='broker to post downloaded files to')
 parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base url of the files announced')
-parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic tree to announce')
 parser.add_argument('--post_topic_prefix', default='/v03/post', help='allows simultaneous use of multiple versions and types of messages')
 parser.add_argument('--select', nargs=1, action='append', help='client-side filtering: accept/reject <regexp>' )
 parser.add_argument('--subtopic', nargs=1, action='append', help='server-side filtering: MQTT subtopic, wilcards # to match rest, + to match one topic' )
+parser.add_argument('--verbose', default=1, type=int, help='how chatty to be 0-rather quiet ... 3-quite chatty really')
 
 args = parser.parse_args()
 
@@ -158,7 +160,11 @@ def mesh_subpub( m ):
 
     lag = time.time() - timestr2flt( m[0] )
 
-    if lag > 120 : # picked a number of 2 minutes...
+    if lag > args.lag_drop : # picked a number of 2 minutes...
+       print( "ERROR: lag is %g seconds, Dropping. " % lag )
+       return
+
+    if lag > args.lag_warn : 
        print( "WARNING: lag is %g seconds, risk of message loss from server-side queueing." % lag )
 
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
