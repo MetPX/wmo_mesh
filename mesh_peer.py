@@ -166,6 +166,8 @@ def mesh_subpub( m ):
 
     if lag > args.lag_warn : 
        print( "WARNING: lag is %g seconds, risk of message loss from server-side queueing." % lag )
+    else:
+       print( "    lag: %g" % lag )
 
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
 
