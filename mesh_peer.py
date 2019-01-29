@@ -156,7 +156,7 @@ def mesh_subpub( m ):
 
     # from sr_postv3.7.rst:   [ m[0]=<datestamp> m[1]=<baseurl> m[2]=<relpath> m[3]=<headers> ]
 
-    lag = time.time() - timeflt2str( m[0] )
+    lag = time.time() - timestr2flt( m[0] )
 
     if lag > 120 : # picked a number of 2 minutes...
        print( "WARNING: lag is %g, risk of message loss from server-side queueing." )
