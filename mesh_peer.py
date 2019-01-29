@@ -2,7 +2,7 @@
 #  mesh_peer - subscribe to a peer and publish locally what you download
 
 import paho.mqtt.client as mqtt
-import os, os.path, urllib.request, json, sys, xattr, datetime, calendar, platform
+import os, os.path, urllib.request, json, sys, xattr, datetime, calendar, time, platform
 
 from hashlib import md5
 from hashlib import sha512
@@ -118,12 +118,12 @@ def download( url, p, old_sum, new_sum ):
        download URL into a local file p, checksum it upon receipt. 
        complain if download failed, perhaps retry.
       
-       do 3 attempts, then give up.
+       do 2 attempts, then give up.
     """
 
     sumstr=None
     attempt=0
-    while attempt < 3 :
+    while attempt < 2 :
         if args.verbose > 1:
              print( "writing attempt %s: %s" % (attempt, p) )
 
@@ -153,7 +153,14 @@ def mesh_subpub( m ):
     """
     global post_client,args
 
+
     # from sr_postv3.7.rst:   [ m[0]=<datestamp> m[1]=<baseurl> m[2]=<relpath> m[3]=<headers> ]
+
+    lag = time.time() - timeflt2str( m[0] )
+
+    if lag > 120 : # picked a number of 2 minutes...
+       print( "WARNING: lag is %g, risk of message loss from server-side queueing." )
+
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
 
     url = m[1] + '/' + m[2]
