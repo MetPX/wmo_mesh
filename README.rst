@@ -62,44 +62,53 @@ Boiling it down to this relatively small example makes discussion easier.
    In ISO8601 when times do not include a timezone marker, it is assumed to be local.
    In the meteorological domain, UTC is more natural. Leaving the Z out seems reasonable.
 
-*  The *baseurl* marks the static starting point to build the complete download URL.
-   it represents the root of the download tree on the remote web server.
+   The date stamp is critical for subscribers to prevent message loss by knowing
+   how far behind the publisher they are.
 
-   specifying the baseurl in each message provides a number of benefits:
+*  The *baseurl* marks the static starting point to build the complete download URL.
+   It represents the root of the download tree on the remote web server.
+
+   Specifying the baseurl in each message provides a number of benefits:
 
    - enables third party transfer, where the broker announcing data doesn't necessarily
      have it locally, it might just know of a remote location, and not be interested in
      it for itself, but it could tell clients where to get it if they want it.
 
-     reduces load on broker, by having other nodes do the actual transfers.
+     Reduces load on broker, by having other nodes do the actual transfers.
 
    - allows many sources of data to be mixed in the same download stream.
+
+   The baseurl field is replaced when re-publishing downloaded data.
 
 
 *  the *relpath* is the rest of the download url.
 
    - isolates the relative path as the basis of comparison for duplicates.
+ 
+   Stays the same with republishing.
 
 
 *  The last argument is the *headers* of which there can be quite a number.
    In this minimal example, only the *sum* headers is included, giving the
    checksum of the file posted.  The first letter of the sum field designates
    a known checksum algorithm (d = MD5, s=SHA512, n=MD5 of the file name, rather than content)
-   Multiple choices for checksum algorithms are offerred because some data type
+   Multiple choices for checksum algorithms are offered because some data type
    may have equivalent but not binary identical representations.
 
    For use cases where full mirroring is desired, additional headers indicating
-   permission modes, modification times, etc.. may be included.
+   permission modes, modification times, etc. may be included.
 
-
+   The actual checksum of the data downloaded must be compared with the
+   advertised one to identify issues. One should always publish with the checksum
+   that matches what was downloaded, rather than what was advertised, to avoid loops.
 
 Audience
 ========
 
 This demonstration is based on the availability of multiple Linux servers, running
 a recent version of Debian or Ubuntu Linux. All of the interactions are command line,
-and so familiarity with linux system administration, editing of configuration files,
-etc... is needed.
+and so familiarity with Linux system administration, editing of configuration files,
+etc. is needed.
 
 
 Peer Setup
@@ -111,7 +120,7 @@ Obtain a Server:
 
   - for example, a raspberry pi.
 
-    - install base raspbian from img ( 2018-11-13-raspbian-stretch-lite.img )
+    - install base Raspbian from img ( 2018-11-13-raspbian-stretch-lite.img )
 
     # raspi-config
 
@@ -125,15 +134,15 @@ Obtain a Server:
 
   - update hostlist for actual addresses. 
 
-any server running debian stretch is equivalent. Ubuntu 18.04 is fine also.
+Any server running Debian stretch is equivalent. Ubuntu 18.04 is fine also.
 Installation instructions will vary by distribution. 
 
 
-things to install on debian:
+Things to install on Debian:
 
 - sudo apt install git vim python3-xattr python3-pip mosquitto
 
-- sudo apt install python3-paho-mqtt  # available on ubuntu >18.04, but not in debian stretch
+- sudo apt install python3-paho-mqtt  # available on ubuntu >18.04, but not in Debian stretch
 
 - use pip3 for what you cannot find in repositories::
 
@@ -170,7 +179,7 @@ Configure Mosquitto
 ~~~~~~~~~~~~~~~~~~~
 
 Mosquitto by default comes set for memory-constrained devices with lossy flows, where 
-lost messares are quickly replaced, and queues simply use memory and are only to support a few 
+lost messages are quickly replaced, and queues simply use memory and are only to support a few 
 seconds (100 messages) of backlog. For the WMO mesh application, we want much more asynchrony 
 in the message flows, and the systems in question have much more memory, so we need to increase 
 the amount of queueing the broker does.
@@ -180,7 +189,7 @@ should not be a practical issue as no file data is sent through these messages.
 
 sudo editor /etc/mosquitto/conf.d/mesh.conf
 
-add::
+Add::
 
         password_file /etc/mosquitto/pwfile
         max_inflight_messages 1000
@@ -188,7 +197,7 @@ add::
         message_size_limit 500000
         upgrade_outgoing_qos True
 
-then run::
+Then run::
 
        # sudo touch /etc/mosquitto/pwfile
        # sudo mosquitto_passwd -b /etc/mosquitto/pwfile owner ownerpw
@@ -203,7 +212,7 @@ in the log (tail /var/log/mosquitto/mosquitto.log )::
    1548600909: Outgoing messages are being dropped for client AWZZ.
    1548601169: Saving in-memory database to /var/lib/mosquitto/mosquitto.db.
 
-note::
+Note::
   to convert epochal time stamp in mosquitto.log:
   
   blacklab% TZ=GMT0 date -d '@1548601169'
@@ -237,26 +246,26 @@ Configure EMQX
   > Username: admin
   > Password: public
 
-use browser to access management gui on host:18083
+Use browser to access management GUI on host:18083
 
-add users, guest and owner, and set their passwords.
+Add users, guest and owner, and set their passwords.
 Add the following to /etc/emqx/acl.conf::
 
  {allow, all, subscribe, [ "xpublic/#" ] }.
 
  {allow, {user, "owner"}, publish, [ "xpublic/#" ] }.
 
-to have acl´s take effect, restart::
+To have ACL´s take effect, restart::
 
   systemctl restart emqx
 
-EQMX seems to come by default with sufficient queueing & bufferring not to lose messages
+EQMX seems to come by default with sufficient queueing & buffering not to lose messages
 in the tests.
 
 Start Each Peer
 ---------------
 
-each node in the network needs to run:
+Each node in the network needs to run:
 
 - a web server to allow others to download.
 - a broker to allow messages to flow
@@ -276,12 +285,12 @@ In a shell window on start::
 
    # ./mesh_peer.py --verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
 
-it will download data under the *data/* sub-directory, and publish it on this_host's broker. 
+It will download data under the *data/* sub-directory, and publish it on this_host's broker. 
 
 Test
 ~~~~
 
-on any peer::
+On any peer::
 
    # echo "hello" >data/hello.txt
    # ./mesh_pub.py --post_broker mqtt://owner:ownerpw@this_host data/hello.txt
@@ -289,7 +298,7 @@ on any peer::
 And the file should rapidly propagate to the peers.
 
 For example with four nodes named blacklab, awzz, bwqd, and cwnp. 
-examples::
+Examples::
  
    blacklab% ./mesh_peer.py --broker mqtt://guest:guestpw@blacklab  --post_broker http://owner:ownerpw@awzz
    pi@BWQD:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@blacklab --post_broker mqtt://owner:ownerpw@bwqd
@@ -299,14 +308,14 @@ examples::
 cleanup
 ~~~~~~~
 
-a sample cron job for directory cleanup has been included.  It is called as follows::
+A sample cron job for directory cleanup has been included.  It is called as follows::
 
     ./old_hour_dirs.py 13 data
 
-to remove all directories with utc datestamps more than 13 hours old.
-sample crontab entry::
+To remove all directories with UTC date stamps more than 13 hours old.
+Sample crontab entry::
 
-    21 * * * * /home/peter/wmo_mesh/old_hour_dirs.py 2 /home/peter/wmo_mesh/data
+    21 * * * * /home/peter/wmo_mesh/old_hour_dirs.py 12 /home/peter/wmo_mesh/data
 
 At 21 minutes past the hour, every hour delete directory trees under /home/peter/wmo_mesh/data which
 are more than two hours old.
@@ -316,10 +325,10 @@ Insert Some Data
 ----------------
 
 There are some Canadian data pumps publishing Sarracenia v02 messages over AMQP 0.9 protocol
-(rabbitMQ broker) available on the internet. There are various ways of injecting data
+(RabbitMQ broker) available on the internet. There are various ways of injecting data
 into such a network, using the exp_2mqtt for a Sarracenia subscriber.
 
-The WMO_Sketch_2mqtt.conf file is a sarracenia subscribe that subscribes to messages from
+The WMO_Sketch_2mqtt.conf file is a Sarracenia subscribe that subscribes to messages from
 here:
 
    https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/
@@ -340,22 +349,22 @@ experimentation.
       echo "amqps://anonymous:anonymous@hpfx.collab.science.gc.ca" >~/.config/sarra/credentials.conf
       echo "amqps://anonymous:anonymous@dd.weather.gc.ca" >>~/.config/sarra/credentials.conf
  
-2. copy configs present only in git repo, and no released version
+2. Copy configurations present only in git repo, and no released version
 
-   recipe::
+   Recipe::
 
      cd ~/.config/sarra/plugins
      wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/plugins/exp_2mqtt.py
      cd ~/.config/sarra/subscribe
      wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/WMO_Sketch_2mqtt.conf
 
-   As of this writing, the above is only in the git repository. in later versions of Sarracenia ( > 2.19.01b1),
+   As of this writing, the above is only in the git repository. In later versions of Sarracenia ( > 2.19.01b1),
    the configurations will be included in examples, so one could replace the above with:
 
    sr_subscribe add WMO_Sketch_2mqtt.conf
     
 
-   what is in the WMO_Sketch_2mqtt.conf file?::
+   What is in the WMO_Sketch_2mqtt.conf file?::
 
     broker amqps://anonymous@hpfx.collab.science.gc.ca   <-- connect to this broker as anonymous user.
     exchange xs_pas037_wmosketch_public                  <-- to this exchange (root topic in MQTT parlance)
@@ -371,15 +380,15 @@ experimentation.
 
 3. Start up the configuration.
 
-   for an initial check, do a first start up of the message transfer client::
+   For an initial check, do a first start up of the message transfer client::
 
        sr_subscribe foreground WMO_Sketch_2mqtt.conf
 
-   After runing for a few seconds, hit ^C to abort. Then start it again in daemon mode::
+   After running for a few seconds, hit ^C to abort. Then start it again in daemon mode::
 
        sr_subscribe start WMO_Sketch_2mqtt.conf
 
-   and it should be running... logs in ~/.config/sarra/log
+   and it should be running. Logs will be in ~/.config/sarra/log
 
    Sample output::
 
@@ -425,7 +434,7 @@ experimentation.
 
         https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/dd_2mqtt.conf
 
-   there will be imagery and Canadian XML's and in a completely different directory tree that is much more difficult
+   There will be imagery and Canadian XML files and in a completely different directory tree that is much more difficult
    to clean.
 
    Note that the *source* field is set, in this feed, to *UCAR-UNIDATA*, which is the local name in ECCC
@@ -450,67 +459,75 @@ experimentation.
           awzz   32M wmo_mesh/data/2019012417
       blacklab%
 
-   So, not perfect... well that's how things are right now...
+   So, not perfect.  Well that's how things are right now. Message loss occurs when subscribers fall too far behind publishers.
 
 
 Demo Limitations 
 ================
 
-* **Retrievel is http or https only** not SFTP, or ftp, or ftps. (Sarracenia does all of them.)
+* **Retrieval is http or https only** not SFTP, or ftp, or ftps. (Sarracenia does all of them.)
 
 * **volume limited to what can be handled by a single process.** Sarracenia *instances* option allows 
   use of arbitrary number of workers to share downloads, higher aggregate performance 
-  with less management. This is enabled by AMQP's use of *queue* naming, where instanaces just
+  with less management. This is enabled by AMQP's use of *queue* naming, where instances just
   specify the same queue to share a load. No analogous feature has been identified in MQTTv311
   (currently most widely deployed ISO standard version) v5 has *shared subscriptions* but not
   clear how that works yet.
 
-* **if urlretrieve fails, demo dies**. Sarracenia has extensive logic to tolerate and recover
-  failures gracefully without spamming the source, and while preferring newer data to missing old data.
-  have added some retry logic to the demo, not sure if it works.
+* **Does not warn about lag** in pub/sub, the client needs to keep up with the publisher.
+  Otherwise, queueing will build up over time, and eventually the server will need to drop messages.
+  This is regardless of the protocol used. Subscribers should be examining the timestamps
+  of messages received and looking for delay. If the messages they are receiving are old and
+  getting older, something must be adjusted.
 
 * **The same tree everywhere.** Sarracenia has extensive support for transforming the tree on the fly.
-  not everyone will be happy with any tree that is specified, being able to transform the tree
+  Not everyone will be happy with any tree that is specified, being able to transform the tree
   makes adoption easier for usage apart from WMO nodes.
 
-* **No broker management.** Sarracenia incorporates user permissions management of a rabbitmq broker,
-  so the broker can be entirely managed, after initial setup, with the application. it implements
+* **No broker management.** Sarracenia incorporates user permissions management of a RabbitMQ broker,
+  so the broker can be entirely managed, after initial setup, with the application. It implements
   a flexible permission scheme that is onerous to do manually.
   In the demo, access permissions must be done manually. 
 
 * **please supply real web server** demo uses python web server whose sole virtue is simplicity.  
-  For deployment, a real web server, such as apache, or nginx is recommended.
+  For deployment, a real web server, such as Apache, or Nginx is recommended, although webfsd
+  is an equally trivial server that seems fit for purpose as well.
 
-* **anyone can share any data from anywhere** demo allows any node to post data anywhere in the tree.
-  It is a deployment detail that some countries will want to restrict who can post on whose behalf.
-  an example basis of such restriction is the *select* argument. allowing one to allow only
-  certain parts of the tree to come from certain peers, if that is desired.
-
-  One could build a worldwide list, shared among WMO partners, of which node is allowed to originate
-  data for a given CCCC.  One could also 
-  
 * **credentials in command-line** better practice to put them in a separate file, as Sarracenia does.
 
 * **logging**, in Sarracenia, logs are available for the dozens of daemons running in a real deployment.
-  they are rotated daily, and retention is configurable.  The demo writes to standard output and error streams.
-  the logs also provide timestamps in the timezone preferred. 
+  They are rotated daily, and retention is configurable.  The demo writes to standard output and error streams.
+  The logs also provide timestamps in the timezone preferred. 
 
 * **python** everything is in python in this demo, which is relatively resource intensive and 
   will not obtain optimal performance. Sarracenia, for example, allows for optimized plugins to 
-  replace python processing where appropriate.  on the other hand, a raspberry pi is very constrained
+  replace python processing where appropriate. On the other hand, a raspberry pi is very constrained
   and keeping up with an impressive flow with little apparent load. 
 
 * demo reads every file twice, once to download, once to checksum. Checksum is then cached
   in an extended attribute, which makes it non-portable to Windows. Sarracenia usually checksums
-  files are they are downloaded (unless an accellerated binary downloader plugin is used.)
+  files are they are downloaded (unless an accelerated binary downloader plugin is used.)
   avoiding one read.
 
 * demo reads every file into memory. Chunking would be more efficient and is done by 
   Sarracenia.
 
-* The client cannot tell if messages have been lost. MQTT has limited buffering,
-  and it will discard messages and note that on the server log. Client has no
-  way of knowing that there are messages missing.  One could add administrative
-  messages to the protocol to warn of such things in a different topic hierarchy
-  using a separate consumer.  That hierarchy would have very low traffic.
+* Other than observations of lag, the client cannot determine if messages have been lost. 
+  MQTT has limited buffering, and it will discard messages and note the loss on the 
+  server log. Client has no way of knowing that there are messages missing.  
+  One could add administrative messages to the protocol to warn of such things 
+  in a different topic hierarchy using a separate consumer.  That hierarchy 
+  would have very low traffic.  This is not a protocol specific issue.  It is 
+  fundamental that subscribers must keep up with publishers, or messages
+  will be lost.
+
+* Security: one should validate that the baseurl is reasonable given the source of the 
+  message. This is a variety of *cross-site scripting* that needs to be worried over in
+  deployment.
+
+* Security: reviews can complain about use of MD5, SHA512 is also available, but the
+  correct algorithms to use will need to be maintained over time. This is one aspect
+  that needs to be standardized (everyone needs to have a list of well-known checksum
+  algorithms.)
+
 
