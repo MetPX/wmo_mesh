@@ -140,7 +140,7 @@ Installation instructions will vary by distribution.
 
 Things to install on Debian:
 
-- sudo apt install git vim python3-xattr python3-pip mosquitto
+- sudo apt install git vim python3-xattr python3-pip mosquitto webfs
 
 - sudo apt install python3-paho-mqtt  # available on ubuntu >18.04, but not in Debian stretch
 
@@ -274,9 +274,14 @@ Each node in the network needs to run:
 Start Web Servers
 ~~~~~~~~~~~~~~~~~~
 
+Need to run a web server that exposes folders under the wmo_mesh directory in a very plain way::
+
     # in one shell start:
     # cd wmo_mesh
-    # ./trivialserver.py
+    # webfsd -p 8000
+
+An alternative to *webfsd* is the *./trivialserver.py* included in the demo.
+It uses more cpu, but is sufficient for a demonstration.
 
 Start mesh_peer.py
 ~~~~~~~~~~~~~~~~~~
