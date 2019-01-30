@@ -15,7 +15,9 @@ import re
 sxa = 'user.sr_sum'
 host = platform.node()
 
-parser=argparse.ArgumentParser(description='Subscribe to one peer, and post what is downloaded')
+parser=argparse.ArgumentParser( \
+     description='Subscribe to one peer, and post what is downloaded' ,\
+     formatter_class=argparse.ArgumentDefaultsHelpFormatter )
 
 parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@host of peer to subscribe to')
 parser.add_argument('--clean_session', type=bool, default=False, help='start a new session, or resume old one?')
@@ -251,13 +253,8 @@ def sub_connect(client, userdata, flags, rc):
 def pub_connect(client, userdata, flags, rc):
     print("pub connected with result code "+str(rc))
 
-id=0
-
 def sub_message(client, userdata, msg):
-    global id
-    id = id + 1
     m = json.loads(msg.payload.decode('utf-8'))
-    print( "     id: ", id )
     print( "  topic: ", msg.topic )
     print( "payload: ", m )
 
