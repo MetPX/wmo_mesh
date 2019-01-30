@@ -467,6 +467,34 @@ experimentation.
    So, not perfect.  Well that's how things are right now. Message loss occurs when subscribers fall too far behind publishers.
 
 
+Sample Outputs
+==============
+
+Below are some sample outputs of mesh_peer.py running.
+A message received on node *CWNP*, served by node *blacklab* , but *CWNP* already has it, so it is not downloaded::
+
+    topic:  xpublic/v03/post/2019013003/CWAO/SX
+    payload:  ['20190130033826.740083', 'http://blacklab:8000/data', '/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt', {'mtime': '20190130033826.735655308', 'mode': '664', 'from_cluster': 'DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE', 'sum': 'd,ac8d831ec7ffe25b3a0bbc3b22fca2c4', 'parts': '1,115,1,0,0', 'atime': '20190130033826.735655308', 'to_clusters': 'DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE', 'source': 'UCAR-UNIDATA'}]
+        lag: 42.4236   (mean lag of all messages: 43.8661 )
+    file exists: data/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt. Should we download? 
+    retrieving sum
+    hash: d,ac8d831ec7ffe25b3a0bbc3b22fca2c4
+    same content:  data/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt
+ 
+Below is a case where blacklab has a file that *CWNP* wants::
+
+    topic:  xpublic/v03/post/2019013003/AMMC/FT
+    payload:  ['20190130033822.951880', 'http://blacklab:8000/data', '/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt', {'mtime': '20190130033822.947654963', 'mode': '664', 'from_cluster': 'DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE', 'sum': 'd,c267e44d8cfc52af0bbc425c46738ad7', 'parts': '1,257,1,0,0', 'atime': '20190130033822.947654963', 'to_clusters': 'DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE', 'source': 'UCAR-UNIDATA'}]
+    lag: 33.924   (mean lag of all messages: 43.8674 )
+    writing attempt 0: data/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt
+    calculating sum
+    published: t=xpublic/v03/post/2019013003/AMMC/FT, body=["20190130033822.951880", "http://cwnp:8000/data", "/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt", {"mtime": "20190130033822.947654963", "mode": "664", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "sum": "d,c267e44d8cfc52af0bbc425c46738ad7", "parts": "1,257,1,0,0", "atime": "20190130033822.947654963", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "source": "UCAR-UNIDATA"}]
+ 
+The file is downloaded and written to the local path, checksum of the downloaded data determined, and then an updated message published,
+with the base URL changed to refer to the local node *CWNP* (the checksum is the same as in the input message because it was correct.)
+
+
+
 Demo Limitations 
 ================
 
@@ -479,11 +507,8 @@ Demo Limitations
   (currently most widely deployed ISO standard version) v5 has *shared subscriptions* but not
   clear how that works yet.
 
-* **Does not warn about lag** in pub/sub, the client needs to keep up with the publisher.
-  Otherwise, queueing will build up over time, and eventually the server will need to drop messages.
-  This is regardless of the protocol used. Subscribers should be examining the timestamps
-  of messages received and looking for delay. If the messages they are receiving are old and
-  getting older, something must be adjusted.
+  For use with MQTT, one would likely divide the CCCC's into groups and have mesh_peers subscribed
+  to subsets of them.
 
 * **The same tree everywhere.** Sarracenia has extensive support for transforming the tree on the fly.
   Not everyone will be happy with any tree that is specified, being able to transform the tree
@@ -493,10 +518,6 @@ Demo Limitations
   so the broker can be entirely managed, after initial setup, with the application. It implements
   a flexible permission scheme that is onerous to do manually.
   In the demo, access permissions must be done manually. 
-
-* **please supply real web server** demo uses python web server whose sole virtue is simplicity.  
-  For deployment, a real web server, such as Apache, or Nginx is recommended, although webfsd
-  is an equally trivial server that seems fit for purpose as well.
 
 * **credentials in command-line** better practice to put them in a separate file, as Sarracenia does.
 
