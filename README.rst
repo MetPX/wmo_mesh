@@ -63,7 +63,7 @@ Boiling it down to this relatively small example makes discussion easier.
    In the meteorological domain, UTC is more natural. Leaving the Z out seems reasonable.
 
    The date stamp is critical for subscribers to prevent message loss by knowing
-   how far behind the publisher they are.
+   their lag (how far behind the publisher they are.) 
 
 *  The *baseurl* marks the static starting point to build the complete download URL.
    It represents the root of the download tree on the remote web server.
@@ -101,6 +101,8 @@ Boiling it down to this relatively small example makes discussion easier.
    The actual checksum of the data downloaded must be compared with the
    advertised one to identify issues. One should always publish with the checksum
    that matches what was downloaded, rather than what was advertised, to avoid loops.
+
+By exchanging messages using only those four fields, a full mesh for the WMO can be implemented.
 
 Audience
 ========
@@ -543,7 +545,7 @@ Demo Limitations
   server log. Client has no way of knowing that there are messages missing.  
   One could add administrative messages to the protocol to warn of such things 
   in a different topic hierarchy using a separate consumer.  That hierarchy 
-  would have very low traffic.  This is not a protocol specific issue.  It is 
+  would have very low traffic. This is not a protocol specific issue. It is 
   fundamental that subscribers must keep up with publishers, or messages
   will be lost.
 
