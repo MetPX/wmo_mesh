@@ -36,7 +36,7 @@ Message Format
 The message format used is a minimal subset with the same semantics
 as the one in use for a few years in `Sarracenia <https://github.com/MetPX/sarracenia>`_
 The main change being a switch from AMQP-specific packing, to a
-protocol agnostic JSON encoding describer here
+protocol agnostic JSON encoding described here
 
 https://github.com/MetPX/sarracenia/blob/master/doc/sr_postv3.7.rst
 
