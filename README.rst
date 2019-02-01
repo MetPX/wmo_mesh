@@ -436,20 +436,25 @@ experimentation.
        2019-01-22 19:43:48,170 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/EGRR/IU, body=["20190123004331.855253", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/EGRR/IU/IUAA01_EGRR_230042_99240486f422b0cb2dcead7819ba8100.bufr", {"parts": "1,249,1,0,0", "atime": "20190123004331.852722168", "mtime": "20190123004331.852722168", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,99240486f422b0cb2dcead7819ba8100", "mode": "664"}]
        2019-01-22 19:43:48,188 [INFO] exp_2mqtt publising topic=xpublic/v03/post/2019012300/CWAO/FT, body=["20190123004337.955676", "https://hpfx.collab.science.gc.ca/~pas037/WMO_Sketch/", "/2019012300/CWAO/FT/FTCN31_CWAO_230000_AAA_81bdc927f5545484c32fb93d43dcf3ca.txt", {"parts": "1,182,1,0,0", "atime": "20190123004337.952722788", "mtime": "20190123004337.952722788", "source": "UCAR-UNIDATA", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "sum": "d,81bdc927f5545484c32fb93d43dcf3ca", "mode": "664"}]
     
-   As these messages come from Sarracenia, they include a lot more fields. There is also a feed from 
-   the current Canadian datamart which has a more eclectic mix of data, but not much in WMO formats:
+As these messages come from Sarracenia, they include a lot more fields. There is also a feed from 
+the current Canadian datamart which has a more eclectic mix of data, but not much in WMO formats:
 
         https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/dd_2mqtt.conf
 
-   There will be imagery and Canadian XML files and in a completely different directory tree that is much more difficult
-   to clean.
+There will be imagery and Canadian XML files and in a completely different directory tree that is much more difficult
+to clean.
 
-   Note that the *source* field is set, in this feed, to *UCAR-UNIDATA*, which is the local name in ECCC
-   for this data source. One would expect the CCCC of the centre injecting the data to be provided in this field.
+Note that the *source* field is set, in this feed, to *UCAR-UNIDATA*, which is the local name in ECCC
+for this data source. One would expect the CCCC of the centre injecting the data to be provided in this field.
 
-4. Does it work?
 
-   Hard to tell. If you set up passwordless ssh between the nodes, you can generate some gross level reports like so::
+Observations
+============
+
+Does it work?
+-------------
+
+Hard to tell. If you set up passwordless ssh between the nodes, you can generate some gross level reports like so::
 
       blacklab% for i in blacklab awzz bwqd cwnp; do ssh $i du -sh wmo_mesh/data/*| awk ' { printf "%10s %5s %s\n", "'$i'", $1, $2 ; };' ; done | sort -r -k 3
           cwnp   31M wmo_mesh/data/2019012419
@@ -466,51 +471,97 @@ experimentation.
           awzz   32M wmo_mesh/data/2019012417
       blacklab%
 
-   So, not perfect.  Well that's how things are right now. Message loss occurs when subscribers fall too far behind publishers.
-
+So, not perfect. Why? Message loss occurs when subscribers fall too far behind publishers.
 
 Sample Outputs
-==============
+--------------
 
-Below are some sample outputs of mesh_peer.py running.
-A message received on node *CWNP*, served by node *blacklab* , but *CWNP* already has it, so it is not downloaded::
+Below are some sample outputs of mesh_peer.py running. A message received on node *CWNP*,
+served by node *blacklab* , but *CWNP* already has it, so it is not downloaded::
 
     topic:  xpublic/v03/post/2019013003/CWAO/SX
-    payload:  ['20190130033826.740083', 'http://blacklab:8000/data', '/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt', {'mtime': '20190130033826.735655308', 'mode': '664', 'from_cluster': 'DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE', 'sum': 'd,ac8d831ec7ffe25b3a0bbc3b22fca2c4', 'parts': '1,115,1,0,0', 'atime': '20190130033826.735655308', 'to_clusters': 'DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE', 'source': 'UCAR-UNIDATA'}]
+    payload:  ['20190130033826.740083', 'http://blacklab:8000/data', '/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt', { 'sum': 'd,ac8d831ec7ffe25b3a0bbc3b22fca2c4' }]
         lag: 42.4236   (mean lag of all messages: 43.8661 )
     file exists: data/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt. Should we download? 
     retrieving sum
     hash: d,ac8d831ec7ffe25b3a0bbc3b22fca2c4
     same content:  data/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt
  
-Below is a case where blacklab has a file that *CWNP* wants::
+In this case, the consumer is receiving a message 42 seconds after it's initial 
+injection into the network. Below is a case where blacklab has a file 
+that *CWNP* wants::
 
     topic:  xpublic/v03/post/2019013003/AMMC/FT
-    payload:  ['20190130033822.951880', 'http://blacklab:8000/data', '/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt', {'mtime': '20190130033822.947654963', 'mode': '664', 'from_cluster': 'DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE', 'sum': 'd,c267e44d8cfc52af0bbc425c46738ad7', 'parts': '1,257,1,0,0', 'atime': '20190130033822.947654963', 'to_clusters': 'DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE', 'source': 'UCAR-UNIDATA'}]
+    payload: ['20190130033822.951880', 'http://blacklab:8000/data', '/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt', { 'sum': 'd,c267e44d8cfc52af0bbc425c46738ad7' }]
     lag: 33.924   (mean lag of all messages: 43.8674 )
     writing attempt 0: data/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt
     calculating sum
-    published: t=xpublic/v03/post/2019013003/AMMC/FT, body=["20190130033822.951880", "http://cwnp:8000/data", "/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt", {"mtime": "20190130033822.947654963", "mode": "664", "from_cluster": "DDSR.CMC,DDI.CMC,DDSR.SCIENCE,DDI.SCIENCE", "sum": "d,c267e44d8cfc52af0bbc425c46738ad7", "parts": "1,257,1,0,0", "atime": "20190130033822.947654963", "to_clusters": "DDI.CMC,DDSR.CMC,DDI.SCIENCE,DDI.SCIENCE", "source": "UCAR-UNIDATA"}]
+    published: t=xpublic/v03/post/2019013003/AMMC/FT, body=[ "20190130033822.951880", "http://cwnp:8000/data", "/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt", { "sum": "d,c267e44d8cfc52af0bbc425c46738ad7" }]
  
-The file is downloaded and written to the local path, checksum of the downloaded data determined, and then an updated message published,
-with the base URL changed to refer to the local node *CWNP* (the checksum is the same as in the input message because it was correct.)
+The file is downloaded and written to the local path, checksum of the 
+downloaded data determined, and then an updated message published, with the 
+base URL changed to refer to the local node *CWNP* (the checksum is the same
+as in the input message because it was correct.)
+
+Determinining Subscriptions
+---------------------------
+
+In the sample output above, there is a line listing **lag** (the age of the message
+being ingested, based on it's timestamp.) Lag of individual messages can be 
+highly variable due to the effects of queueing. If lag is consistently too high,
+or an increasing trend is identified over time, one must address it, as eventually
+the consumer will fall too far behind the source and the source will begin dropping
+messages.
+
+It is here were a major practical difference between AMQP and MQTT is obvious. To
+increase the number of messages being consumer per unit time with AMQP, one would add
+consumers to a shared queue. With Sarracenia, this means increasing the *instances* setting.
+Generally increasing instances provides enough performance.
+
+With MQTT, on the other hand, multiple consumers to a single queue is not possible, so
+one must partition the topic space using subtopic filtering.  The first simple subscription is:: 
+
+   # ./mesh_peer.py --verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
+
+If that is too slow, then the same subscription must be tuned For example::
+
+   # ./mesh_peer.py --subtopic '+/+/IU/#' --subtopic '+/+/IS/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
+
+would only subscribe to BUFR reports on the peer, from all over the world.  
+On the other hand, one could subscribe to reports on the peer from different origin codes::
+
+   # ./mesh_peer.py --subtopic '+/KWNB/+/#' --subtopic '+/KWBC/+/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
+
+Ensure that the combination of all subscriptions includes all of the data 
+of to be downloaded from the peer. In order to ensure that data flows in
+the event of the failure of any one peer, each node should maintain equivalent
+subscriptions to at least two nodes in the network.  
+
+Bandwidth
+---------
+
+It should be noted that if each node is subscribed to at least two peers, 
+each announcement will be read from two sources and sent to two subscribers 
+(minimum four traversals), and the data itself will be read once, and likely
+delivered to a one subscriber. The multiple extra sends of announcements 
+is one point against including the data itself in the message stream.
+
+The expected initial deployment is an MPLS (star-topology) network,
+where peering to any node may have similar cost. One can adapt to different
+topologies (such as where it is advantageous to have peers within one region)
+by careful selection of peering. No change in design is needed.
+
+While transport is a solved problem, this approach in no way limits
+future adoption of new technology, by dint of supporting additional
+protocols for downloading (e.g. ipfs) that may result in more efficient
+use of available bandwidth.
 
 
 
-Demo Limitations 
-================
+Known Demo Limitations 
+======================
 
 * **Retrieval is http or https only** not SFTP, or ftp, or ftps. (Sarracenia does all of them.)
-
-* **volume limited to what can be handled by a single process.** Sarracenia *instances* option allows 
-  use of arbitrary number of workers to share downloads, higher aggregate performance 
-  with less management. This is enabled by AMQP's use of *queue* naming, where instances just
-  specify the same queue to share a load. No analogous feature has been identified in MQTTv311
-  (currently most widely deployed ISO standard version) v5 has *shared subscriptions* but not
-  clear how that works yet.
-
-  For use with MQTT, one would likely divide the CCCC's into groups and have mesh_peers subscribed
-  to subsets of them.
 
 * **The same tree everywhere.** Sarracenia has extensive support for transforming the tree on the fly.
   Not everyone will be happy with any tree that is specified, being able to transform the tree
@@ -527,35 +578,42 @@ Demo Limitations
   They are rotated daily, and retention is configurable.  The demo writes to standard output and error streams.
   The logs also provide timestamps in the timezone preferred. 
 
-* **python** everything is in python in this demo, which is relatively resource intensive and 
+* mesh_peer is in **entirely in python** in this demo, which is relatively resource intensive and 
   will not obtain optimal performance. Sarracenia, for example, allows for optimized plugins to 
   replace python processing where appropriate. On the other hand, a raspberry pi is very constrained
   and keeping up with an impressive flow with little apparent load. 
 
-* demo reads every file twice, once to download, once to checksum. Checksum is then cached
+* demo **reads every file twice**, once to download, once to checksum. Checksum is then cached
   in an extended attribute, which makes it non-portable to Windows. Sarracenia usually checksums
   files are they are downloaded (unless an accelerated binary downloader plugin is used.)
   avoiding one read.
 
-* demo reads every file into memory. Chunking would be more efficient and is done by 
+* demo **reads every file into memory**. Chunking would be more efficient and is done by 
   Sarracenia.
 
-* Other than observations of lag, the client cannot determine if messages have been lost. 
+* *Potential race condition* As there is no file locking, if a file is obtained from two 
+  nodes at exactly the same time, the content of a file already transferred may disappear 
+  while the second writer is writing it. Unclear if this is a real problem, requires 
+  further study.
+
+* Other than observations of lag, the **client cannot determine if messages have been lost.**
   MQTT has limited buffering, and it will discard messages and note the loss on the 
   server log. Client has no way of knowing that there are messages missing.  
   One could add administrative messages to the protocol to warn of such things 
-  in a different topic hierarchy using a separate consumer.  That hierarchy 
+  in a different topic hierarchy using a separate consumer. That hierarchy 
   would have very low traffic. This is not a protocol specific issue. It is 
   fundamental that subscribers must keep up with publishers, or messages
   will be lost.
 
-* Security: one should validate that the baseurl is reasonable given the source of the 
+* Security: **one should validate the baseurl** is reasonable given the source of the 
   message. This is a variety of *cross-site scripting* that needs to be worried over in
   deployment.
 
-* Security: reviews can complain about use of MD5, SHA512 is also available, but the
+* Security: reviews may complain about **use of MD5**, SHA512 is also available, but the
   correct algorithms to use will need to be maintained over time. This is one aspect
   that needs to be standardized (everyone needs to have a list of well-known checksum
   algorithms.)
+
+* Security: **mqtts, and https needed** in production scenarios.
 
 

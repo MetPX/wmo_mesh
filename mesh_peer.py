@@ -149,32 +149,16 @@ def download( url, p, old_sum, new_sum ):
 
     return sumstr
 
-msg_count=0
-total_lag=0
-
 def mesh_subpub( m ):
     """
        If it isn't already here, download the file announced by the message m.
        If you download it, then publish to  the local broker.
     """
-    global post_client,args,msg_count,total_lag
+    global post_client,args
 
 
     # from sr_postv3.7.rst:   [ m[0]=<datestamp> m[1]=<baseurl> m[2]=<relpath> m[3]=<headers> ]
 
-    lag = time.time() - timestr2flt( m[0] )
-
-    msg_count = msg_count + 1
-    total_lag = total_lag + lag
-
-    if lag > args.lag_drop : # picked a number of 2 minutes...
-       print( "ERROR: lag is %g seconds, Dropping. " % lag )
-       return
-
-    if lag > args.lag_warn : 
-       print( "WARNING: lag is %g seconds, risk of message loss from server-side queueing." % lag )
-    else:
-       print( "    lag: %g   (mean lag of all messages: %g )" % ( lag, total_lag/msg_count ) )
 
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
 
@@ -258,10 +242,36 @@ def sub_connect(client, userdata, flags, rc):
 def pub_connect(client, userdata, flags, rc):
     print("pub connected with result code "+str(rc))
 
+msg_count=0
+total_lag=0
+
 def sub_message(client, userdata, msg):
+    """
+      callback on receipt of a message. 
+      Decode it into a JSON body.
+      check lag.
+      if not too old, then call subpub.
+
+    """
+    global msg_count,total_lag
+
     m = json.loads(msg.payload.decode('utf-8'))
     print( "  topic: ", msg.topic )
     print( "payload: ", m )
+
+    lag = time.time() - timestr2flt( m[0] )
+
+    msg_count = msg_count + 1
+    total_lag = total_lag + lag
+
+    if lag > args.lag_drop : # picked a number of 2 minutes...
+       print( "ERROR: lag is %g seconds, Dropping. " % lag )
+       return
+
+    if lag > args.lag_warn : 
+       print( "WARNING: lag is %g seconds, risk of message loss from server-side queueing." % lag )
+    else:
+       print( "    lag: %g   (mean lag of all messages: %g )" % ( lag, total_lag/msg_count ) )
 
     mesh_subpub(m)
     print( " ")
