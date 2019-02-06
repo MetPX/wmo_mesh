@@ -31,7 +31,6 @@ parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files 
 
 args = parser.parse_args( )
 
-print( 'args.header=%s' % args.header )
 headers={}
 
 if args.header:
