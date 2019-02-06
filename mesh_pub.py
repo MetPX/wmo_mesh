@@ -21,6 +21,7 @@ def pub_publish(client, userdata, mid):
 
 parser = argparse.ArgumentParser(description='post some files')
 
+parser.add_argument('--header', nargs=1, action='append', help='name=value user defined optional metadata' )
 parser.add_argument('--post_broker', default='mqtt://' + host, help=" mqtt://user:pw@host - broker to post to" )
 parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base of the tree to publish')
 parser.add_argument('--post_base_dir', default= os.getcwd() + '/data', help='local directory corresponding to baseurl')
@@ -29,6 +30,14 @@ parser.add_argument('--post_topic_prefix', default='/v03/post', help='means of s
 parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files to post')
 
 args = parser.parse_args( )
+
+print( 'args.header=%s' % args.header )
+headers={}
+
+if args.header:
+    for h in args.header:
+        (n,v) = h[0].split('=')
+        headers[n] = v
 
 post_client = mqtt.Client( protocol=mqtt.MQTTv311 )
 
@@ -60,7 +69,8 @@ for f in args.file:
     if relpath[0] == '/':
         relpath= relpath[1:]
     
-    p = json.dumps( (datestamp, args.post_baseurl, relpath, { "sum":"d,"+h.hexdigest() } )) 
+    headers[ "sum" ] = "d,"+h.hexdigest()
+    p = json.dumps( (datestamp, args.post_baseurl, relpath, headers )) 
     
     if os.path.dirname(relpath) == '/':
         subtopic=''
