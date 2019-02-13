@@ -42,7 +42,7 @@ https://github.com/MetPX/sarracenia/blob/master/doc/sr_postv3.7.rst
 
 Entire format is human readable::
 
-   ["20190120045018.314854383", "http://localhost/data", "bulletins/alphanumeric/20190120/UA/CWAO/04/UANT01_CWAO_200445___15103", {"sum": "d,d41d8cd98f00b204e9800998ecf8427e"}]
+   ["20190120045018.314854383", "http://localhost/data", "bulletins/alphanumeric/20190120/GTS/UA/CWAO/04/UANT01_CWAO_200445___15103", {"sum": "d,d41d8cd98f00b204e9800998ecf8427e"}]
 
 Boiling it down to this relatively small example makes discussion easier.
 
@@ -261,8 +261,33 @@ To have ACL´s take effect, restart::
 
   systemctl restart emqx
 
-EQMX seems to come by default with sufficient queueing & buffering not to lose messages
-in the tests.
+EQMX seems to come by default with sufficient queueing & 
+buffering not to lose messages in the tests.
+
+Configure VerneMQ
+~~~~~~~~~~~~~~~~~
+
+Download the appropriate vernemq package, and install it.
+Create guest and admin users, and set their passwords::
+
+  # vmq-passwd -c /etc/vernemq/vmq.passwd guest
+  # vmq-passwd /etc/vernemq/vmq.passwd admin
+
+The Access Control lists would be more complex in practice.
+This is a very simple choice for the demo.  Add ACL's needed::
+
+  # cat /etc/vernemq/vmq.acl
+  user admin
+  topic write xpublic/#
+  user guest
+  topic read xpublic/#
+  #
+
+restart VerneMQ::
+
+  # systemctl restart vernemq 
+
+
 
 Start Each Peer
 ---------------
@@ -358,15 +383,8 @@ experimentation.
  
 2. Copy configurations present only in git repo, and no released version
 
-   Recipe::
-
-     cd ~/.config/sarra/plugins
-     wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/plugins/exp_2mqtt.py
-     cd ~/.config/sarra/subscribe
-     wget https://raw.githubusercontent.com/MetPX/sarracenia/master/sarra/examples/subscribe/WMO_Sketch_2mqtt.conf
-
-   As of this writing, the above is only in the git repository. In later versions of Sarracenia ( > 2.19.01b1),
-   the configurations will be included in examples, so one could replace the above with:
+   In later versions of Sarracenia ( > 2.19.01b1), the configurations are included in examples, 
+   so one could replace the above with:
 
    sr_subscribe add WMO_Sketch_2mqtt.conf
     
@@ -479,24 +497,24 @@ Sample Outputs
 Below are some sample outputs of mesh_peer.py running. A message received on node *CWNP*,
 served by node *blacklab* , but *CWNP* already has it, so it is not downloaded::
 
-    topic:  xpublic/v03/post/2019013003/CWAO/SX
-    payload:  ['20190130033826.740083', 'http://blacklab:8000/data', '/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt', { 'sum': 'd,ac8d831ec7ffe25b3a0bbc3b22fca2c4' }]
+    topic:  xpublic/v03/post/2019013003/GTS/CWAO/SX
+    payload:  ['20190130033826.740083', 'http://blacklab:8000/data', '/2019013003/GTS/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt', { 'sum': 'd,ac8d831ec7ffe25b3a0bbc3b22fca2c4' }]
         lag: 42.4236   (mean lag of all messages: 43.8661 )
-    file exists: data/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt. Should we download? 
+    file exists: data/2019013003/GTS/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt. Should we download? 
     retrieving sum
     hash: d,ac8d831ec7ffe25b3a0bbc3b22fca2c4
-    same content:  data/2019013003/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt
+    same content:  data/2019013003/GTS/CWAO/SX/SXCN19_CWAO_300300_ac8d831ec7ffe25b3a0bbc3b22fca2c4.txt
  
 In this case, the consumer is receiving a message 42 seconds after it's initial 
 injection into the network. Below is a case where blacklab has a file 
 that *CWNP* wants::
 
-    topic:  xpublic/v03/post/2019013003/AMMC/FT
-    payload: ['20190130033822.951880', 'http://blacklab:8000/data', '/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt', { 'sum': 'd,c267e44d8cfc52af0bbc425c46738ad7' }]
+    topic:  xpublic/v03/post/2019013003/GTS/AMMC/FT
+    payload: ['20190130033822.951880', 'http://blacklab:8000/data', '/2019013003/GTS/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt', { 'sum': 'd,c267e44d8cfc52af0bbc425c46738ad7' }]
     lag: 33.924   (mean lag of all messages: 43.8674 )
-    writing attempt 0: data/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt
+    writing attempt 0: data/2019013003/GTS/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt
     calculating sum
-    published: t=xpublic/v03/post/2019013003/AMMC/FT, body=[ "20190130033822.951880", "http://cwnp:8000/data", "/2019013003/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt", { "sum": "d,c267e44d8cfc52af0bbc425c46738ad7" }]
+    published: t=xpublic/v03/post/2019013003/GTS/AMMC/FT, body=[ "20190130033822.951880", "http://cwnp:8000/data", "/2019013003/GTS/AMMC/FT/FTAU31_AMMC_292300_AAC_c267e44d8cfc52af0bbc425c46738ad7.txt", { "sum": "d,c267e44d8cfc52af0bbc425c46738ad7" }]
  
 The file is downloaded and written to the local path, checksum of the 
 downloaded data determined, and then an updated message published, with the 
@@ -525,12 +543,12 @@ one must partition the topic space using subtopic filtering.  The first simple s
 
 If that is too slow, then the same subscription must be tuned For example::
 
-   # ./mesh_peer.py --subtopic '+/+/IU/#' --subtopic '+/+/IS/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
+   # ./mesh_peer.py --subtopic '+/GTS/+/IU/#' --subtopic '+/GTS/+/IS/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
 
 would only subscribe to BUFR reports on the peer, from all over the world.  
 On the other hand, one could subscribe to reports on the peer from different origin codes::
 
-   # ./mesh_peer.py --subtopic '+/KWNB/+/#' --subtopic '+/KWBC/+/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
+   # ./mesh_peer.py --subtopic '+/GTS/KWNB/+/#' --subtopic '+/GTS/KWBC/+/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
 
 Ensure that the combination of all subscriptions includes all of the data 
 of to be downloaded from the peer. In order to ensure that data flows in
