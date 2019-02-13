@@ -543,10 +543,16 @@ one must partition the topic space using subtopic filtering.  The first simple s
 
 If that is too slow, then the same subscription must be tuned For example::
 
-   # ./mesh_peer.py --subtopic '+/GTS/+/IU/#' --subtopic '+/GTS/+/IS/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
+   # ./mesh_peer.py --subtopic '+/GTS/+/IU/#' --subtopic '+/GTS/+/IS/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host  --clean_session
 
 would only subscribe to BUFR reports on the peer, from all over the world.  
-On the other hand, one could subscribe to reports on the peer from different origin codes::
+Whenever you change the --subtopic settings, you should use the --clean_session setting, 
+as by default mesh_peer.py will try to connect to recover any messages missed while it was stopped.
+Once you have finished tuning, remove the --clean_session from the options to avoid
+data loss.
+
+Another means of dividing the flow, one could subscribe to reports on the peer from 
+different origin codes::
 
    # ./mesh_peer.py --subtopic '+/GTS/KWNB/+/#' --subtopic '+/GTS/KWBC/+/#'--verbose=2 --broker mqtt://guest:guestpw@peer_to_subscribe_to --post_broker mqtt://owner:ownerpw@this_host 
 
