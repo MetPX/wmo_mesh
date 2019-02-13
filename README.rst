@@ -555,24 +555,64 @@ of to be downloaded from the peer. In order to ensure that data flows in
 the event of the failure of any one peer, each node should maintain equivalent
 subscriptions to at least two nodes in the network.  
 
+Some future work would be to create a second daemon, mesh_dispatch, that would
+automatically spawn mesh_peer instances with appropriately partitioned subscriptions.
+It should be straightforward, but there wasn´t time before the meeting.
+
+
+
+
 Bandwidth
 ---------
 
 It should be noted that if each node is subscribed to at least two peers, 
 each announcement will be read from two sources and sent to two subscribers 
 (minimum four traversals), and the data itself will be read once, and likely
-delivered to a one subscriber. The multiple extra sends of announcements 
+delivered to one subscriber. The multiple extra sends of announcements 
 is one point against including the data itself in the message stream.
 
-The expected initial deployment is an MPLS (star-topology) network,
 where peering to any node may have similar cost. One can adapt to different
-topologies (such as where it is advantageous to have peers within one region)
+topologies (such as, where it is advantageous to have peers within one region)
 by careful selection of peering. No change in design is needed.
+
+
+Compared to Current GTS: More Even Distribution of Uplink
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The *Regional Main Data Communications Network* (RMDCN), an MPLS network
+(Multi-protocol Lan Service, a technology that results in a central 
+node to interconnect subscribers, or a star-topology) network, that 
+the European Centre for Medium-range Weather Forecasting (ECMWF) has 
+contracted, is the de-facto standard physical link over which the GTS links
+are transported. In this network, there is little to no advantage (lower 
+latency of higher bandwidth) to peering with geopraphic proximity.
+
+However, links in such networks are typically symmetric: They have
+the same bandwidth available for both sending and receiving data. As the data 
+for any one country is much less to send than the data from the rest of the
+world to be received, each country will have excess unused sending capacity
+on their RMDCN link. The exception to this would be GTS regional 
+telecomunications hubs (RTH), which may need to obtain higher capacity
+RMDCN conncetions in order to send upto the whole world´s data to each of it´s 
+client NC´s. 
+
+In comparison to this current layering of point to point GTS links over the 
+RMDCN, the mesh exchange proposal would reduce to the RTH need for uplink 
+bandwidth, and increase the reliance on existing likely unused uplink 
+bandwidth at the other centres, potentially lowering the cost of RMDCN as a whole.
+The GTS is currently very limited in it´s volume, so the effect would be 
+negligeable, but if volumes expand, this inherently more even spread of 
+uplink bandwidth could become more noticeable. 
+
+
+Open to Future Changes via URL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While transport is a solved problem, this approach in no way limits
 future adoption of new technology, by dint of supporting additional
 protocols for downloading (e.g. ipfs) that may result in more efficient
 use of available bandwidth.
+
 
 
 
