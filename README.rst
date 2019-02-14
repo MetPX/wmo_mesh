@@ -42,7 +42,15 @@ https://github.com/MetPX/sarracenia/blob/master/doc/sr_postv3.7.rst
 
 Entire format is human readable::
 
-   ["20190120045018.314854383", "http://localhost/data", "bulletins/alphanumeric/20190120/GTS/UA/CWAO/04/UANT01_CWAO_200445___15103", {"sum": "d,d41d8cd98f00b204e9800998ecf8427e"}]
+   [{ "pubtime" : "20190120T045018.314854383", 
+      "baseurl" : "https://localhost/data", 
+      "relpath" : "20190120/WIS/CA/CMC/UpperAir/04/UANT01_CWAO_200445___15103.txt", 
+      "size": "TBD",
+      "sum": { "method": "MD5", "value": "d41d8cd98f00b204e9800998ecf8427e" },
+      "signature": "TBD",
+      "data": "TBD"
+    }
+   ]
 
 Boiling it down to this relatively small example makes discussion easier.
 

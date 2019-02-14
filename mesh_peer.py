@@ -157,19 +157,16 @@ def mesh_subpub( m ):
     global post_client,args
 
 
-    # from sr_postv3.7.rst:   [ m[0]=<datestamp> m[1]=<baseurl> m[2]=<relpath> m[3]=<headers> ]
-
-
     d= args.dir_prefix + '/' + os.path.dirname(m[2])
 
-    url = m[1] + '/' + m[2]
+    url = m['baseurl'] + '/' + m['relpath']
 
     if not URLSelected( url ):
        if args.verbose > 1:
            print( "rejected", url )
        return
 
-    fname=os.path.basename(m[2])
+    fname=os.path.basename(m['relpath'])
 
     if not os.path.isdir(d): 
         os.makedirs(d)
@@ -187,15 +184,15 @@ def mesh_subpub( m ):
                print( "retrieving sum" )
            old_sum = a[sxa].decode('utf-8')
         else: 
-           old_sum = sum_file(p, m[3]['sum'][0] )
+           old_sum = sum_file(p, m['sum'][0] )
 
         print( "hash: %s" % old_sum )
-        if old_sum == m[3]['sum']:
+        if old_sum == m['sum']:
             if args.verbose > 1:
                 print( "same content: ", p )
             return
     else:
-        old_sum = 'd,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
+        old_sum = '{ 'method':'d,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
 
     sumstr = download( url, p, old_sum, m[3]['sum'] )
 
@@ -259,7 +256,7 @@ def sub_message(client, userdata, msg):
     print( "  topic: ", msg.topic )
     print( "payload: ", m )
 
-    lag = time.time() - timestr2flt( m[0] )
+    lag = time.time() - timestr2flt( m['pubtime'] )
 
     msg_count = msg_count + 1
     total_lag = total_lag + lag
