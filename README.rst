@@ -689,3 +689,9 @@ Known Demo Limitations
 * Security: **mqtts, and https needed** in production scenarios.
 
 
+Copyright
+=========
+
+The MetPX project is copyright Government of Canada, using the same license as the Linux
+kernel (GPLv2) and is thus free to use, modify and distribute as long as the changes are 
+made public as well. Contributors retain copyright to their contributions.
