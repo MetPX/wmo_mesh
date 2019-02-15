@@ -20,7 +20,11 @@ def pub_connect(client, userdata, flags, rc):
 def pub_publish(client, userdata, mid):
     print("published mid=%s" % ( mid ) )
 
-parser = argparse.ArgumentParser(description='post some files')
+parser = argparse.ArgumentParser(\
+     description='post some files', \
+     formatter_class=argparse.ArgumentDefaultsHelpFormatter )
+
+
 
 parser.add_argument('--binary', dest='binary', action='store_true', help='encode payload in base64 (otherwise assumed utf-8)')
 parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')
