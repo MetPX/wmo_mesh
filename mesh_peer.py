@@ -139,12 +139,18 @@ def download( url, p, old_sum, new_sum, m ):
         if 'content' in m.keys():
             if args.verbose > 1:
                 print( "inline content: ", p )
-            f=open( p, 'w')
+            # create file if it does not exist, open without truncating for write.
+            # this deals with the race condition where two readers compete to write the same file.
+            # they will just write the same bytes at the same location, so no harm done... 
+            # but must avoid truncation, which is stupidly difficult in python
+            f = os.fdopen(os.open(p, os.O_RDWR | os.O_CREAT), 'rb+')
             if m['content']['encoding'] == 'base64':
                f.write( b64decode( m['content']['value'] ) )
             else:
-               f.write( m['content']['value'] )
+               f.write( m['content']['value'].encode('utf-8' ))
+            f.truncate()
             f.close()
+            
             
         else:
             if args.verbose > 1:
