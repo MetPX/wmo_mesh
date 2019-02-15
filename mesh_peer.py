@@ -6,6 +6,7 @@ import os, os.path, urllib.request, json, sys, xattr, datetime, calendar, time, 
 
 from hashlib import md5
 from hashlib import sha512
+from base64 import b64decode, b64encode
 
 import argparse
 
@@ -104,21 +105,21 @@ def sum_file( filename, algo ):
     if args.verbose > 1:
         print( "calculating sum" )
 
-    if algo in [ 'd', 's' ]:
+    if algo in [ 'md5', 'sha512', 'd', 's' ]:
         f = open(filename,'rb')
         d = f.read()
         f.close()
     elif algo in [ 'n' ]:
         d=filename
  
-    if algo in [ 'd', 'n']:
+    if algo in [ 'md5', 'md5name', 'd', 'n']:
         h = md5()
-    elif algo is 's':
+    elif algo in [ 'sha512', 's']:
         h = sha512()
 
     h.update(d) 
-    sf = algo + ',' + h.hexdigest()
-    xattr.setxattr(filename, sxa, bytes(sf,'utf-8') )
+    sf = { "method":"md5", "value": b64encode(h.digest()).decode('utf-8') }
+    xattr.setxattr(filename, sxa, json.dumps(sf).encode('utf-8') )
     return sf
     
 def download( url, p, old_sum, new_sum ):
@@ -143,10 +144,10 @@ def download( url, p, old_sum, new_sum ):
 
         if os.path.exists( p ):
             # calculate actual checksum, regardless of what the message says.
-            sumstr = sum_file(p, new_sum[0] )
-            if (sumstr != new_sum ):
+            sumstr = sum_file(p, new_sum['method'] )
+            if (sumstr[ 'value' ] != new_sum[ 'value' ] ):
                 print( "checksum mismatch on download", p )
-            if (sumstr != old_sum ): # the 
+            if (sumstr[ 'value' ] != old_sum[ 'value' ] ): # the 
                 attempt=99 
         else:
             attempt = attempt +1
@@ -185,9 +186,9 @@ def mesh_subpub( m ):
         if sxa in a.keys():
            if args.verbose > 1:
                print( "retrieving sum" )
-           old_sum = a[sxa].decode('utf-8')
+           old_sum = json.loads(a[sxa])
         else: 
-           old_sum = sum_file(p, m['sum'][0] )
+           old_sum = sum_file(p, m['sum']['method'] )
 
         print( "hash: %s" % old_sum )
         if old_sum == m['sum']:
@@ -195,7 +196,7 @@ def mesh_subpub( m ):
                 print( "same content: ", p )
             return
     else:
-        old_sum = 'd,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
+        old_sum = { 'method': 'md5', 'value': '1B2M2Y8AsgTpgAmY7PhCfg==' }  # md5sum for empty file.
 
     sumstr = download( url, p, old_sum, m['sum'] )
 
