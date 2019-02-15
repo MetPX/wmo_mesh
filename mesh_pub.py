@@ -24,6 +24,7 @@ parser = argparse.ArgumentParser(description='post some files')
 
 parser.add_argument('--binary', dest='binary', action='store_true', help='encode payload in base64 (otherwise assumed utf-8)')
 parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')
+parser.add_argument('--inline_max', type=int, default=1024, help='maximum message size to inline')
 parser.set_defaults( binary=False, inline=False )
 parser.add_argument('--header', nargs=1, action='append', help='name=value user defined optional metadata' )
 parser.add_argument('--post_broker', default='mqtt://' + host, help=" mqtt://user:pw@host - broker to post to" )
@@ -64,7 +65,7 @@ for f in args.file:
      
     h = md5()
     h.update(d)
-    if args.inline and len(d) < 1024:
+    if args.inline and len(d) < args.inline_max:
           
        if args.binary:
            headers[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }  
