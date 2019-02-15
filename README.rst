@@ -42,9 +42,9 @@ https://github.com/MetPX/sarracenia/blob/master/doc/sr_postv3.7.rst
 
 Entire format is human readable::
 
-   [{ "pubtime" : "20190120T045018.314854383", 
-      "baseurl" : "https://localhost/data", 
-      "relpath" : "20190120/WIS/CA/CMC/UpperAir/04/UANT01_CWAO_200445___15103.txt", 
+   [{ "pubTime" : "20190120T045018.314854383", 
+      "baseUrl" : "https://localhost/data", 
+      "relPath" : "20190120/WIS/CA/CMC/UpperAir/04/UANT01_CWAO_200445___15103.txt", 
       "size": "TBD",
       "sum": { "method": "MD5", "value": "d41d8cd98f00b204e9800998ecf8427e" },
       "signature": "TBD",
@@ -73,10 +73,10 @@ Boiling it down to this relatively small example makes discussion easier.
    The date stamp is critical for subscribers to prevent message loss by knowing
    their lag (how far behind the publisher they are.) 
 
-*  The *baseurl* marks the static starting point to build the complete download URL.
+*  The *baseUrl* marks the static starting point to build the complete download URL.
    It represents the root of the download tree on the remote web server.
 
-   Specifying the baseurl in each message provides a number of benefits:
+   Specifying the baseUrl in each message provides a number of benefits:
 
    - enables third party transfer, where the broker announcing data doesn't necessarily
      have it locally, it might just know of a remote location, and not be interested in
@@ -86,10 +86,10 @@ Boiling it down to this relatively small example makes discussion easier.
 
    - allows many sources of data to be mixed in the same download stream.
 
-   The baseurl field is replaced when re-publishing downloaded data.
+   The baseUrl field is replaced when re-publishing downloaded data.
 
 
-*  the *relpath* is the rest of the download url.
+*  the *relPath* is the rest of the download url.
 
    - isolates the relative path as the basis of comparison for duplicates.
  
@@ -677,7 +677,7 @@ Known Demo Limitations
   fundamental that subscribers must keep up with publishers, or messages
   will be lost.
 
-* Security: **one should validate the baseurl** is reasonable given the source of the 
+* Security: **one should validate the baseUrl** is reasonable given the source of the 
   message. This is a variety of *cross-site scripting* that needs to be worried over in
   deployment.
 
