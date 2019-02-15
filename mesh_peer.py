@@ -122,7 +122,7 @@ def sum_file( filename, algo ):
     xattr.setxattr(filename, sxa, json.dumps(sf).encode('utf-8') )
     return sf
     
-def download( url, p, old_sum, new_sum ):
+def download( url, p, old_sum, new_sum, m ):
     """
        download URL into a local file p, checksum it upon receipt. 
        complain if download failed, perhaps retry.
@@ -136,11 +136,23 @@ def download( url, p, old_sum, new_sum ):
         if args.verbose > 1:
              print( "writing attempt %s: %s" % (attempt, p) )
 
-        try:
-            urllib.request.urlretrieve( url, p )    
-
-        except Exception as ex:
-            print(ex)
+        if 'content' in m.keys():
+            if args.verbose > 1:
+                print( "inline content: ", p )
+            f=open( p, 'w')
+            if m['content']['encoding'] == 'base64':
+               f.write( b64decode( m['content']['value'] ) )
+            else:
+               f.write( m['content']['value'] )
+            f.close()
+            
+        else:
+            if args.verbose > 1:
+                print( "download content: ", p )
+            try:
+                urllib.request.urlretrieve( url, p )    
+            except Exception as ex:
+                print(ex)
 
         if os.path.exists( p ):
             # calculate actual checksum, regardless of what the message says.
@@ -198,7 +210,7 @@ def mesh_subpub( m ):
     else:
         old_sum = { 'method': 'md5', 'value': '1B2M2Y8AsgTpgAmY7PhCfg==' }  # md5sum for empty file.
 
-    sumstr = download( url, p, old_sum, m['sum'] )
+    sumstr = download( url, p, old_sum, m['sum'], m )
 
     if ( sumstr is None ): 
        print( 'download failed')
