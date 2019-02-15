@@ -28,7 +28,7 @@ parser.add_argument('--lag_drop', default=7200, type=int, help='in seconds, drop
 
 # the web server address for the source of the locally published tree.
 parser.add_argument('--post_broker', default='mqtt://' + host, help='broker to post downloaded files to')
-parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base url of the files announced')
+parser.add_argument('--post_baseUrl', default='http://' + host + ':8000/data', help='base url of the files announced')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic tree to announce')
 parser.add_argument('--post_topic_prefix', default='/v03/post', help='allows simultaneous use of multiple versions and types of messages')
 parser.add_argument('--select', nargs=1, action='append', help='client-side filtering: accept/reject <regexp>' )
@@ -160,17 +160,16 @@ def mesh_subpub( m ):
     """
     global post_client,args
 
+    d= args.dir_prefix + '/' + os.path.dirname(m['relPath'])
 
-    d= args.dir_prefix + '/' + os.path.dirname(m[2])
-
-    url = m['baseurl'] + '/' + m['relpath']
+    url = m['baseUrl'] + '/' + m['relPath']
 
     if not URLSelected( url ):
        if args.verbose > 1:
            print( "rejected", url )
        return
 
-    fname=os.path.basename(m['relpath'])
+    fname=os.path.basename(m['relPath'])
 
     if not os.path.isdir(d): 
         os.makedirs(d)
@@ -198,17 +197,18 @@ def mesh_subpub( m ):
     else:
         old_sum = 'd,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
 
-    sumstr = download( url, p, old_sum, m[3]['sum'] )
+    sumstr = download( url, p, old_sum, m['sum'] )
 
     if ( sumstr is None ): 
        print( 'download failed')
        return
  
-    m[3]['sum'] = sumstr
+    m['sum'] = sumstr
 
     # after download, publish for others.
-    t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m[2])
-    body = json.dumps( ( m[0], args.post_baseurl, m[2], m[3]) )
+    t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m['relPath'])
+    m[ 'baseUrl' ] = args.post_baseUrl
+    body = json.dumps( m )
 
     if args.post_broker == None:
          return
@@ -260,7 +260,7 @@ def sub_message(client, userdata, msg):
     print( "  topic: ", msg.topic )
     print( "payload: ", m )
 
-    lag = time.time() - timestr2flt( m['pubtime'] )
+    lag = time.time() - timestr2flt( m['pubTime'] )
 
     msg_count = msg_count + 1
     total_lag = total_lag + lag

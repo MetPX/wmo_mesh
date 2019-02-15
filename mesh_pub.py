@@ -3,6 +3,7 @@
 import paho.mqtt.client as mqtt
 import os,json,sys,time,argparse,platform,urllib.parse
 from hashlib import md5
+from base64 import b64decode, b64encode
 
 host=platform.node()
 
@@ -21,12 +22,15 @@ def pub_publish(client, userdata, mid):
 
 parser = argparse.ArgumentParser(description='post some files')
 
+parser.add_argument('--binary', dest='binary', action='store_true', help='encode payload in base64 (otherwise assumed utf-8)')
+parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')
+parser.set_defaults( binary=False, inline=False )
 parser.add_argument('--header', nargs=1, action='append', help='name=value user defined optional metadata' )
 parser.add_argument('--post_broker', default='mqtt://' + host, help=" mqtt://user:pw@host - broker to post to" )
-parser.add_argument('--post_baseurl', default='http://' + host + ':8000/data', help='base of the tree to publish')
-parser.add_argument('--post_base_dir', default= os.getcwd() + '/data', help='local directory corresponding to baseurl')
+parser.add_argument('--post_baseUrl', default='http://' + host + ':8000/data', help='base of the tree to publish')
+parser.add_argument('--post_baseDir', default= os.getcwd() + '/data', help='local directory corresponding to baseurl')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic hierarchy (similar to AMQP exchange)')
-parser.add_argument('--post_topic_prefix', default='/v03/post', help='means of separating message versions and types.')
+parser.add_argument('--post_topicPrefix', default='/v03/post', help='means of separating message versions and types.')
 parser.add_argument('file', nargs='+', type=argparse.FileType('r'), help='files to post')
 
 args = parser.parse_args( )
@@ -37,6 +41,7 @@ if args.header:
     for h in args.header:
         (n,v) = h[0].split('=')
         headers[n] = v
+
 
 post_client = mqtt.Client( protocol=mqtt.MQTTv311 )
 
@@ -59,24 +64,33 @@ for f in args.file:
      
     h = md5()
     h.update(d)
+    if args.inline and len(d) < 1024:
+          
+       if args.binary:
+           headers[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }  
+       else:
+           headers[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }  
     
     now=time.time()
     nsec = ('%.9g' % (now%1))[1:]
     datestamp  = time.strftime("%Y%m%dT%H%M%S",time.gmtime(now)) + nsec
       
-    relpath = os.path.abspath(f.name).replace( args.post_base_dir, '' )
+    relpath = os.path.abspath(f.name).replace( args.post_baseDir, '' )
     if relpath[0] == '/':
         relpath= relpath[1:]
     
-    headers[ "sum" ] = "d,"+h.hexdigest()
-    p = json.dumps( (datestamp, args.post_baseurl, relpath, headers )) 
+    headers[ "pubTime" ] = datestamp
+    headers[ "baseUrl" ] = args.post_baseUrl
+    headers[ "relPath" ] = relpath
+    headers[ "sum" ] = { "method": "md5", "value": b64encode(h.digest()).decode('utf-8') }
+    p = json.dumps( headers ) 
     
     if os.path.dirname(relpath) == '/':
         subtopic=''
     else:
         subtopic=os.path.dirname(relpath)
 
-    t = args.post_exchange + args.post_topic_prefix + '/' + subtopic
+    t = args.post_exchange + args.post_topicPrefix + '/' + subtopic
     
     print( "topic=%s , payload=%s" % ( t, p ) )
     info = post_client.publish(t, p, qos=1 )
