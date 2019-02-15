@@ -62,7 +62,7 @@ for f in args.file:
     
     now=time.time()
     nsec = ('%.9g' % (now%1))[1:]
-    datestamp  = time.strftime("%Y%m%d%H%M%S",time.gmtime(now)) + nsec
+    datestamp  = time.strftime("%Y%m%dT%H%M%S",time.gmtime(now)) + nsec
       
     relpath = os.path.abspath(f.name).replace( args.post_base_dir, '' )
     if relpath[0] == '/':

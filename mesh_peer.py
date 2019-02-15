@@ -85,8 +85,12 @@ def timestr2flt( s ):
        convert a date string to a python epochal time.
     """
 
-    t=datetime.datetime(  int(s[0:4]), int(s[4:6]), int(s[6:8]), int(s[8:10]), int(s[10:12]), int(s[12:14]), 0, datetime.timezone.utc )
-    f=calendar.timegm(  t.timetuple())+float('0'+s[14:])
+    if s[8] == 'T' :
+        t=datetime.datetime(  int(s[0:4]), int(s[4:6]), int(s[6:8]), int(s[9:11]), int(s[11:13]), int(s[13:15]), 0, datetime.timezone.utc )
+        f=calendar.timegm(  t.timetuple())+float('0'+s[15:])
+    else:
+        t=datetime.datetime(  int(s[0:4]), int(s[4:6]), int(s[6:8]), int(s[8:10]), int(s[10:12]), int(s[12:14]), 0, datetime.timezone.utc )
+        f=calendar.timegm(  t.timetuple())+float('0'+s[14:])
     return(f)
 
 
@@ -192,7 +196,7 @@ def mesh_subpub( m ):
                 print( "same content: ", p )
             return
     else:
-        old_sum = '{ 'method':'d,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
+        old_sum = 'd,d41d8cd98f00b204e9800998ecf8427e' # md5sum for empty file.
 
     sumstr = download( url, p, old_sum, m[3]['sum'] )
 
