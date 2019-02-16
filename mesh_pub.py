@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt
 import os,json,sys,time,argparse,platform,urllib.parse
 from hashlib import md5
 from base64 import b64decode, b64encode
-import mimetypes
+from mimetypes import guess_type
 
 host=platform.node()
 
@@ -74,7 +74,7 @@ for f in args.file:
     if args.inline and len(d) < args.inline_max:
           
        if args.encoding == 'guess':
-           e = mimetypes.guess_type(f.name)[0]
+           e = guess_type(f.name)[0]
            binary= not e or not ( 'text' in e )
        else:
            binary =  (args.encoding == 'text')

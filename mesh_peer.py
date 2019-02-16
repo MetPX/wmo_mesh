@@ -7,7 +7,7 @@ import os, os.path, urllib.request, json, sys, xattr, datetime, calendar, time, 
 from hashlib import md5
 from hashlib import sha512
 from base64 import b64decode, b64encode
-
+from mimetypes import guess_type
 import argparse
 
 import re
@@ -24,6 +24,13 @@ parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@h
 parser.add_argument('--clean_session', type=bool, default=False, help='start a new session, or resume old one?')
 parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
 parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
+parser.add_argument('--encoding', choices=[ 'text', 'binary', 'guess'], help='encode payload in base64 (for binary) or text (utf-8)')
+
+parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')
+parser.add_argument('--inline_max', type=int, default=1024, help='maximum message size to inline')
+
+parser.set_defaults( encoding='guess', inline=False )
+
 parser.add_argument('--lag_warn', default=120, type=int, help='in seconds, warn if messages older than that')
 parser.add_argument('--lag_drop', default=7200, type=int, help='in seconds, drop messages older than that')
 
@@ -93,7 +100,6 @@ def timestr2flt( s ):
         t=datetime.datetime(  int(s[0:4]), int(s[4:6]), int(s[6:8]), int(s[8:10]), int(s[10:12]), int(s[12:14]), 0, datetime.timezone.utc )
         f=calendar.timegm(  t.timetuple())+float('0'+s[14:])
     return(f)
-
 
 def sum_file( filename, algo ):
     """
@@ -224,6 +230,24 @@ def mesh_subpub( m ):
  
     m['sum'] = sumstr
 
+    if args.inline and not 'content' in m.keys():
+        s= os.stat(p)
+        if s.st_size < args.inline_max:
+            f = open(p, 'rb') 
+            d=f.read()
+            f.close()
+            if args.encoding == 'guess':
+                e = guess_type(p)[0]
+                binary= not e or not ( 'text' in e )
+            else:
+                binary =  (args.encoding == 'text')
+     
+            if binary:
+                m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }
+            else:
+                m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
+     
+            
     # after download, publish for others.
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m['relPath'])
     m[ 'baseUrl' ] = args.post_baseUrl
