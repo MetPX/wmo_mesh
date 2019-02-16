@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import os,json,sys,time,argparse,platform,urllib.parse
 from hashlib import md5
 from base64 import b64decode, b64encode
+import mimetypes
 
 host=platform.node()
 
@@ -26,10 +27,11 @@ parser = argparse.ArgumentParser(\
 
 
 
-parser.add_argument('--binary', dest='binary', action='store_true', help='encode payload in base64 (otherwise assumed utf-8)')
+parser.add_argument('--encoding', choices=[ 'text', 'binary', 'guess'], \
+    help='encode payload in base64 (for binary) or text (utf-8)')
 parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')
 parser.add_argument('--inline_max', type=int, default=1024, help='maximum message size to inline')
-parser.set_defaults( binary=False, inline=False )
+parser.set_defaults( encoding='guess', inline=False )
 parser.add_argument('--header', nargs=1, action='append', help='name=value user defined optional metadata' )
 parser.add_argument('--post_broker', default='mqtt://' + host, help=" mqtt://user:pw@host - broker to post to" )
 parser.add_argument('--post_baseUrl', default='http://' + host + ':8000/data', help='base of the tree to publish')
@@ -71,7 +73,13 @@ for f in args.file:
     h.update(d)
     if args.inline and len(d) < args.inline_max:
           
-       if args.binary:
+       if args.encoding == 'guess':
+           e = mimetypes.guess_type(f.name)[0]
+           binary= not e or not ( 'text' in e )
+       else:
+           binary =  (args.encoding == 'text')
+
+       if binary:
            headers[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }  
        else:
            headers[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }  
