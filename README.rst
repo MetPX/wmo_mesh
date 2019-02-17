@@ -27,6 +27,7 @@ This demonstration is done with MQTT protocol which is more
 interoperable than the more robust AMQP protocol. It is intended
 to demonstrate the algorithm and the method, not for production use.
 
+
 .. contents::
 
 
@@ -395,10 +396,14 @@ experimentation.
  
 2. Copy configurations present only in git repo, and no released version
 
-   In later versions of Sarracenia ( > 2.19.01b1), the configurations are included in examples, 
-   so one could replace the above with:
-
    sr_subscribe add WMO_Sketch_2mqtt.conf
+
+   ETCTS201902 changed the format, so need an updated plugin not available in release version::
+
+     cd ~/.config/sarra/plugins
+     wget https://raw.githubusercontent.com/MetPX/sarracenia/ETCTS201902/sarra/plugins/exp_2mqtt.py
+
+   which will produce the format required by this demo after the meeting in question. 
     
 
    What is in the WMO_Sketch_2mqtt.conf file?::
@@ -623,6 +628,7 @@ negligeable, but if volumes expand, this inherently more even spread of
 uplink bandwidth could become more noticeable. 
 
 
+
 Open to Future Changes via URL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -692,10 +698,72 @@ Known Demo Limitations
 
 * Security: **mqtts, and https needed** in production scenarios.
 
+Background/History
+==================
+
+This demonstration code was written to illustrate the main algorithm for multiple peers
+to maintain a synchronized directory tree. It was originally envisioned at the
+a meeting of the World Meteorological Organization, Committee for Basic Systems
+(WMO-CBS) Namibia (2009) as an informal discussion. The idea was a bit too far from
+what others were doing to be understood at that point, and so a `Canadian stack <https://githum.com/MetPX/sarracenia>`_ 
+fully exploiting the idea was developed to prove the concept to ourselves.
+It is very different from traditional global telecommunications system (GTS),
+and so members need a more in depth introduction. As people become comfortable 
+with it, features can be added to it so that it can function as a reference
+implementation for others' stacks.
+
+All of the WMO members have many constraints on software adoption, and so 
+proposing a stack for use by others, especially one that is poorly understood, 
+would not be a successful endeavour. So rather than propose the Canadian stack
+itself, the central algorithm was re-implemented in a pared down way with an emphasis
+on ease of communication. *Ease* is a relative term. The audience for which this is *easy*
+to understand is a small one, but it includes the people would would create their own 
+national implementations. This proposal is for underlying plumbing of data exchange,
+and end users are likely not interested in it. End user services would likely use
+other software layered over this transport one.
+
+This proposal was first discussed in detail at a meeting of World Meteorological 
+Organization's Expert Team on computing and telecommunications systems ( ET-CTS ) 
+in Buenos Aires, 2019/02 11-15. There were some changes made to the encoding,
+which mostly improved readability, which have been incorporated.  We are now
+using the Issue tracker to follow up.
+
+FAQ
+===
+
+Priority
+--------
+
+Traditional GTS had the concept of higher priority messages. The effect of priorities
+in traditional GTS was to set up queues at each priority level. Although it was not
+explicitly stated, generally the priority implementation was all the items at a higher
+priority would be sent before any at the next level priority were. 
+
+In a pub/sub system, the same effect can be achieved by using subscribers for
+high priority messages which are separate from the others. so one would run a mesh_peer.py
+subscribed to weather warnings and administrative messages, a second one for observations
+and FT's and the like, and then a third one for the balance of data (grib ;-)
+
+Corruption from Download Race Condition 
+---------------------------------------
+
+Rarely, if multiple subscribers on the same system get a message from multiple subscribers 
+about the same file, and it hasn't been downloaded yet, each one will download and write
+it locally.  Will that not result in file corruption?
+
+Implementation must ensure that they do not truncate files when they are opened for writing.
+In Linux, some standard methods of performing input output start by truncating the file.
+This truncation of file open must be avoided (a matter of careful API use.)  Further, 
+in Linux, each process obtains a separate file pointer, and will start writing
+at the beginning of the file. If two processes are downloading the same file at once,
+they will write the same bytes twice at slightly different times, and no corruption will occur.
+
 
 Copyright
 =========
 
+This work is being done under the aegis of the Meteorological Product Exchanger (MetPX) project.
 The MetPX project is copyright Government of Canada, using the same license as the Linux
 kernel (GPLv2) and is thus free to use, modify and distribute as long as the changes are 
 made public as well. Contributors retain copyright to their contributions.
+
