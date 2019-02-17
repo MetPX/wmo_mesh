@@ -13,7 +13,7 @@ import argparse
 import re
 
 # name of the extended attribute to cache checksums in when calculated
-sxa = 'user.sr_sum'
+sxa = 'user.sr_integrity'
 host = platform.node()
 
 parser=argparse.ArgumentParser( \
@@ -101,7 +101,7 @@ def timestr2flt( s ):
         f=calendar.timegm(  t.timetuple())+float('0'+s[14:])
     return(f)
 
-def sum_file( filename, algo ):
+def compute_file_integrity( filename, algo ):
     """
       calculate the checksum of a file using the given algorithm. return a sum header.
       side effect: stores the checksum in a file attribute
@@ -124,7 +124,7 @@ def sum_file( filename, algo ):
         h = sha512()
 
     h.update(d) 
-    sf = { "method":"md5", "value": b64encode(h.digest()).decode('utf-8') }
+    sf = { "method":algo, "value": b64encode(h.digest()).decode('utf-8').strip() }
     xattr.setxattr(filename, sxa, json.dumps(sf).encode('utf-8') )
     return sf
     
@@ -168,9 +168,9 @@ def download( url, p, old_sum, new_sum, m ):
 
         if os.path.exists( p ):
             # calculate actual checksum, regardless of what the message says.
-            sumstr = sum_file(p, new_sum['method'] )
+            sumstr = compute_file_integrity(p, new_sum['method'] )
             if (sumstr[ 'value' ] != new_sum[ 'value' ] ):
-                print( "checksum mismatch on download", p )
+                print( "integrity mismatch msg: %s vs. download: %s for %s" % ( sumstr[ 'value' ], new_sum[ 'value' ] ,p ) )
             if (sumstr[ 'value' ] != old_sum[ 'value' ] ): # the 
                 attempt=99 
         else:
@@ -212,27 +212,29 @@ def mesh_subpub( m ):
                print( "retrieving sum" )
            old_sum = json.loads(a[sxa])
         else: 
-           old_sum = sum_file(p, m['sum']['method'] )
+           old_sum = compute_file_integrity(p, m['integrity']['method'] )
 
         print( "hash: %s" % old_sum )
-        if old_sum == m['sum']:
+        if old_sum == m['integrity']:
             if args.verbose > 1:
                 print( "same content: ", p )
             return
     else:
         old_sum = { 'method': 'md5', 'value': '1B2M2Y8AsgTpgAmY7PhCfg==' }  # md5sum for empty file.
 
-    sumstr = download( url, p, old_sum, m['sum'], m )
+    sumstr = download( url, p, old_sum, m['integrity'], m )
 
     if ( sumstr is None ): 
        print( 'download failed')
        return
  
-    m['sum'] = sumstr
+    m['integrity'] = sumstr
 
     if args.inline and not 'content' in m.keys():
         s= os.stat(p)
+        print( 'inline check sz: %d , max: %d' % (s.st_size, args.inline_max ) )
         if s.st_size < args.inline_max:
+            print( 'inline check, small enough!')
             f = open(p, 'rb') 
             d=f.read()
             f.close()
@@ -243,7 +245,7 @@ def mesh_subpub( m ):
                 binary =  (args.encoding == 'text')
      
             if binary:
-                m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }
+                m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8').strip() }
             else:
                 m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
      
@@ -255,7 +257,6 @@ def mesh_subpub( m ):
 
     if args.post_broker == None:
          return
-
     info = post_client.publish( topic=t, payload=body, qos=1 )
     info.wait_for_publish()
 

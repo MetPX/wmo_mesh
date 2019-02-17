@@ -42,15 +42,13 @@ https://github.com/MetPX/sarracenia/blob/master/doc/sr_postv3.7.rst
 
 Entire format is human readable::
 
-   [{ "pubTime" : "20190120T045018.314854383", 
+   {  "pubTime" : "20190120T045018.314854383", 
       "baseUrl" : "https://localhost/data", 
       "relPath" : "20190120/WIS/CA/CMC/UpperAir/04/UANT01_CWAO_200445___15103.txt", 
       "size": "TBD",
-      "sum": { "method": "MD5", "value": "d41d8cd98f00b204e9800998ecf8427e" },
-      "signature": "TBD",
-      "data": "TBD"
-    }
-   ]
+      "integrity": { "method": "MD5", "value": "d41d8cd98f00b204e9800998ecf8427e" },
+      "content": { "encoding": "utf-8", "value": "encoded bytes from the file" }
+   }
 
 Boiling it down to this relatively small example makes discussion easier.
 
@@ -335,15 +333,21 @@ On any peer::
    # echo "hello" >data/hello.txt
    # ./mesh_pub.py --post_broker mqtt://owner:ownerpw@this_host data/hello.txt
 
-And the file should rapidly propagate to the peers.
+And the file should rapidly propagate to the peers.  Use *--inline* option to have the file content
+include in the message itself (as long as it is below the threshold maximum size.)
 
-For example with four nodes named blacklab, awzz, bwqd, and cwnp. 
+For example, with four nodes named blacklab, awzz, bwqd, and cwnp. 
 Examples::
  
-   blacklab% ./mesh_peer.py --broker mqtt://guest:guestpw@blacklab  --post_broker http://owner:ownerpw@awzz
-   pi@BWQD:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@blacklab --post_broker mqtt://owner:ownerpw@bwqd
-   pi@cwnp:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@bwqd --post_broker mqtt://owner:ownerpw@cwnp
+   blacklab% ./mesh_peer.py --inline --broker mqtt://guest:guestpw@blacklab  --post_broker http://owner:ownerpw@awzz
+   pi@BWQD:~/wmo_mesh $ ./mesh_peer.py --inline --broker mqtt://guest:guestpw@blacklab --post_broker mqtt://owner:ownerpw@bwqd
+   pi@cwnp:~/wmo_mesh $ ./mesh_peer.py --inline --broker mqtt://guest:guestpw@bwqd --post_broker mqtt://owner:ownerpw@cwnp
    pi@AWZZ:~/wmo_mesh $ ./mesh_peer.py --broker mqtt://guest:guestpw@cwnp --post_broker mqtt://owner:ownerpw@awzz
+
+Any peer can consume messages whether the data is inlined or not.
+
+
+
 
 cleanup
 ~~~~~~~

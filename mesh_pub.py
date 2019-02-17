@@ -95,7 +95,7 @@ for f in args.file:
     headers[ "pubTime" ] = datestamp
     headers[ "baseUrl" ] = args.post_baseUrl
     headers[ "relPath" ] = relpath
-    headers[ "sum" ] = { "method": "md5", "value": b64encode(h.digest()).decode('utf-8') }
+    headers[ "integrity" ] = { "method": "md5", "value": b64encode(h.digest()).decode('utf-8') }
     p = json.dumps( headers ) 
     
     if os.path.dirname(relpath) == '/':
