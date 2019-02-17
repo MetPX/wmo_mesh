@@ -214,7 +214,6 @@ def mesh_subpub( m ):
         else: 
            old_sum = compute_file_integrity(p, m['integrity']['method'] )
 
-        print( "hash: %s" % old_sum )
         if old_sum == m['integrity']:
             if args.verbose > 1:
                 print( "same content: ", p )
@@ -232,9 +231,10 @@ def mesh_subpub( m ):
 
     if args.inline and not 'content' in m.keys():
         s= os.stat(p)
-        print( 'inline check sz: %d , max: %d' % (s.st_size, args.inline_max ) )
+        if args.verbose > 2:
+            print( 'inline check sz: %d , max: %d' % (s.st_size, args.inline_max ) )
         if s.st_size < args.inline_max:
-            print( 'inline check, small enough!')
+            print( 'message is small enough to be inlined. Doing so for local re-publish')
             f = open(p, 'rb') 
             d=f.read()
             f.close()
