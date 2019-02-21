@@ -82,7 +82,10 @@ for f in args.file:
        if binary:
            headers[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }  
        else:
-           headers[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }  
+           try:
+              headers[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }  
+           except:
+              headers[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8') }  
     
     now=time.time()
     nsec = ('%.9g' % (now%1))[1:]
