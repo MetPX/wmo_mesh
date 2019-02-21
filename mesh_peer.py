@@ -24,6 +24,7 @@ parser.add_argument('--broker', default='mqtt://' + host, help='mqtt://user:pw@h
 parser.add_argument('--clean_session', type=bool, default=False, help='start a new session, or resume old one?')
 parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
 parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
+parser.add_argument('--download', type=bool, default=True, help='should download data ?')
 parser.add_argument('--encoding', choices=[ 'text', 'binary', 'guess'], help='encode payload in base64 (for binary) or text (utf-8)')
 parser.add_argument('--exchange', default='xpublic', help='root of the topic tree to subscribe to')
 
@@ -222,42 +223,43 @@ def mesh_subpub( m ):
     else:
         old_sum = { 'method': 'md5', 'value': '1B2M2Y8AsgTpgAmY7PhCfg==' }  # md5sum for empty file.
 
-    sumstr = download( url, p, old_sum, m['integrity'], m )
+    if args.download:
+        sumstr = download( url, p, old_sum, m['integrity'], m )
 
-    if ( sumstr is None ): 
-       print( 'download failed')
-       return
+        if ( sumstr is None ): 
+           print( 'download failed')
+           return
  
-    m['integrity'] = sumstr
+        m['integrity'] = sumstr
 
-    if args.inline and not 'content' in m.keys():
-        s= os.stat(p)
-        if args.verbose > 2:
-            print( 'inline check sz: %d , max: %d' % (s.st_size, args.inline_max ) )
-        if s.st_size < args.inline_max:
-            print( 'message is small enough to be inlined. Doing so for local re-publish')
-            f = open(p, 'rb') 
-            d=f.read()
-            f.close()
-            if args.encoding == 'guess':
-                e = guess_type(p)[0]
-                binary= not e or not ( 'text' in e )
-            else:
-                binary =  (args.encoding == 'text')
+        if args.inline and not 'content' in m.keys():
+            s= os.stat(p)
+            if args.verbose > 2:
+                print( 'inline check sz: %d , max: %d' % (s.st_size, args.inline_max ) )
+            if s.st_size < args.inline_max:
+                print( 'message is small enough to be inlined. Doing so for local re-publish')
+                f = open(p, 'rb') 
+                d=f.read()
+                f.close()
+                if args.encoding == 'guess':
+                    e = guess_type(p)[0]
+                    binary= not e or not ( 'text' in e )
+                else:
+                    binary =  (args.encoding == 'text')
      
-            if binary:
-                m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8').strip() }
-            else:
-                m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
+                if binary:
+                    m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8').strip() }
+                else:
+                    m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
+        m[ 'baseUrl' ] = args.post_baseUrl
      
-            
     # after download, publish for others.
     t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m['relPath'])
-    m[ 'baseUrl' ] = args.post_baseUrl
     body = json.dumps( m )
 
     if args.post_broker == None:
          return
+
     info = post_client.publish( topic=t, payload=body, qos=1 )
     info.wait_for_publish()
 
