@@ -40,6 +40,7 @@ parser.add_argument('--lag_drop', default=7200, type=int, help='in seconds, drop
 parser.add_argument('--post_broker', default='mqtt://' + host, help='broker to post downloaded files to')
 parser.add_argument('--post_baseUrl', default='http://' + host + ':8000/data', help='base url of the files announced')
 parser.add_argument('--post_exchange', default='xpublic', help='root of the topic tree to announce')
+parser.add_argument('--post_exchange_split', type=int, default=0, help='split output into different exchanges 00,01,...')
 parser.add_argument('--post_topic_prefix', default='/v03/post', help='allows simultaneous use of multiple versions and types of messages')
 parser.add_argument('--select', nargs=1, action='append', help='client-side filtering: accept/reject <regexp>' )
 parser.add_argument('--subtopic', nargs=1, action='append', help='server-side filtering: MQTT subtopic, wilcards # to match rest, + to match one topic' )
@@ -258,7 +259,11 @@ def mesh_subpub( m ):
         m[ 'baseUrl' ] = args.post_baseUrl
      
     # after download, publish for others.
-    t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m['relPath'])
+    if args.post_exchange_split > 0:
+        rem = "%02d" % ( ord(m[ 'integrity' ]['value'][0]) % args.post_exchange_split )
+        t=args.post_exchange + rem + args.post_topic_prefix + os.path.dirname(m['relPath'])
+    else:
+        t=args.post_exchange + args.post_topic_prefix + os.path.dirname(m['relPath'])
     body = json.dumps( m )
 
     if args.post_broker == None:
