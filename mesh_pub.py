@@ -25,8 +25,6 @@ parser = argparse.ArgumentParser(\
      description='post some files', \
      formatter_class=argparse.ArgumentDefaultsHelpFormatter )
 
-
-
 parser.add_argument('--encoding', choices=[ 'text', 'binary', 'guess'], \
     help='encode payload in base64 (for binary) or text (utf-8)')
 parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')

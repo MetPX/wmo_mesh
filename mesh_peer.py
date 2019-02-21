@@ -252,7 +252,7 @@ def mesh_subpub( m ):
                 else:
                     try:
                         m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
-                    else:
+                    except:
                         m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8').strip() }
 
         m[ 'baseUrl' ] = args.post_baseUrl
