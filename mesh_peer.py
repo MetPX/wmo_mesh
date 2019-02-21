@@ -250,7 +250,11 @@ def mesh_subpub( m ):
                 if binary:
                     m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8').strip() }
                 else:
-                    m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
+                    try:
+                        m[ "content" ] = { "encoding": "utf-8", "value": d.decode('utf-8') }
+                    else:
+                        m[ "content" ] = { "encoding": "base64", "value": b64encode(d).decode('utf-8').strip() }
+
         m[ 'baseUrl' ] = args.post_baseUrl
      
     # after download, publish for others.
