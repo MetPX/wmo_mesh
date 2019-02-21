@@ -25,6 +25,7 @@ parser.add_argument('--clean_session', type=bool, default=False, help='start a n
 parser.add_argument('--clientid', default=host, help='like an AMQP queue name, identifies a group of subscribers')
 parser.add_argument('--dir_prefix', default='data', help='local sub-directory to put data in')
 parser.add_argument('--encoding', choices=[ 'text', 'binary', 'guess'], help='encode payload in base64 (for binary) or text (utf-8)')
+parser.add_argument('--exchange', default='xpublic', help='root of the topic tree to subscribe to')
 
 parser.add_argument('--inline', dest='inline', action='store_true', help='include file data in the message')
 parser.add_argument('--inline_max', type=int, default=1024, help='maximum message size to inline')
@@ -279,7 +280,7 @@ def sub_connect(client, userdata, flags, rc):
     if rc > 5: rc=6
     print( "on connection to subscribe:", rcs[rc] )
     for s in args.subtopic:
-        subj = args.post_exchange + args.post_topic_prefix + '/' + s
+        subj = args.exchange + args.post_topic_prefix + '/' + s
         if args.verbose > 1:
            print( "subtopic:", subj )
         client.subscribe( subj , qos=1 )
