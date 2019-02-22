@@ -9,6 +9,7 @@ from hashlib import sha512
 from base64 import b64decode, b64encode
 from mimetypes import guess_type
 import argparse
+import errno
 
 import re
 
