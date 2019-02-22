@@ -169,6 +169,7 @@ def download( url, p, old_sum, new_sum, m ):
             except Exception as ex:
                 print(ex)
 
+        attempt = attempt +1
         if os.path.exists( p ):
             # calculate actual checksum, regardless of what the message says.
             sumstr = compute_file_integrity(p, new_sum['method'] )
@@ -176,8 +177,6 @@ def download( url, p, old_sum, new_sum, m ):
                 print( "integrity mismatch msg: %s vs. download: %s for %s" % ( sumstr[ 'value' ], new_sum[ 'value' ] ,p ) )
             if (sumstr[ 'value' ] != old_sum[ 'value' ] ): # the 
                 attempt=99 
-        else:
-            attempt = attempt +1
 
     return sumstr
 
@@ -200,7 +199,13 @@ def mesh_subpub( m ):
     fname=os.path.basename(m['relPath'])
 
     if not os.path.isdir(d): 
-        os.makedirs(d)
+        try:
+            os.makedirs(d)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+               pass
+            else:
+               print( 'mkdir failed, errno=%d' % e.errno )
     
     p =  (d + '/' + fname).replace('//','/') 
 
