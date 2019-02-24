@@ -583,6 +583,36 @@ automatically spawn mesh_peer instances with appropriately partitioned subscript
 It should be straightforward, but there wasn´t time before the meeting.
 
 
+Easy Parallellism
+~~~~~~~~~~~~~~~~~
+
+There is a script called mesh_multi.sh which takes three arguments:
+
+ * node - name of the remote node to subscribe to.
+
+ * broker - the remote node's broker url.
+
+ * workers - the number of worker processes to launch.
+
+The script is only a few lines and it launches a single *dispatcher* configuration 
+of the mesh_peer, as well the N workers. The dispatcher downloads nothing, it only subscribes
+to the messages on the remote broker, and then distributes them to a separate download topic tree
+for each worker. The workers then each download 1/N of the files announced.
+
+so to implement one node of the wmo_mesh, start up this script with two 
+different nodes::
+
+  ./mesh_multi.sh cwao mqtt://cwao.cmc.ec.gc.ca  5
+  ./mesh_multi.sh kwbc mqtt://kwbc.nws.noaa.gov  5
+
+Each one will start a log for each worker and the dispatcher. Here
+are the log files created for subscription bwqd node with five workers::
+
+  blacklab% ls mesh*bwqd*.log
+  mesh_dispatch_bwqd.log  mesh_worker_00_bwqd.log  mesh_worker_01_bwqd.log  mesh_worker_02_bwqd.log  mesh_worker_03_bwqd.log  mesh_worker_04_bwqd.log
+  blacklab% 
+
+
 
 
 Bandwidth
