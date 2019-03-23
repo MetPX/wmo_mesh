@@ -9,6 +9,7 @@ STATUS
 ======
 
 20190302 - working if you check out Sarracenia from git.  No packages available yet.
+All will be included in releases >= v2.19.03b4 
 
 
 Introduction
@@ -34,8 +35,8 @@ Install Web Server
 ==================
 
    apt install webfsd
-   mkdir /tmp/WMO_AMQP_sketch
-   cd /tmp/WMO_AMQP_sketch
+   mkdir /tmp/WMO_amqp_mesh
+   cd /tmp/WMO_amqp_mesh
    webfs -p 8081
 
 
@@ -101,17 +102,15 @@ To get a rabbitmq-server on localhost with publisher and separate subscriber::
 Configure Peer Subscriptions
 ============================
 
-The one that is active now is::
+This enables a subscription to the Canadian source sample AMQP server::
 
-   cp WMO_Sketch_CMC.conf ~/.config/sarra/subscribe
+   sr_subscribe add WMO_mesh_CMC.conf
+   sr_subscribe edit WMO_mesh_CMC.conf  # to review the configuration.
 
-   sr_subscribe edit WMO_Sketch_CMC.conf
+Could add a subscription to another peer::
 
-Could add another one::
-
-   cp WMO_Sketch_Peer.conf ~/.config/sarra/subscribe/WMO_Sketch_BWQD.conf
-
-   sr_subscribe edit WMO_Sketch_BWQD.conf
+   sr_subscribe add WMO_mesh_BWQD.conf
+   sr_subscribe edit WMO_mesh_BWQD.conf  # to review the configuration.
 
 replace the file *Peer* and *ThisHost* in the file to correct values.
 
@@ -121,8 +120,8 @@ Start things up
 
 The commands::
 
-  sr_subscribe start WMO_Sketch_CMC
-  sr_subscribe start WMO_Sketch_BWQD
+  sr_subscribe start WMO_mesh_CMC
+  sr_subscribe start WMO_mesh_BWQD
 
   cd ~/.cache/sarra/log
 
