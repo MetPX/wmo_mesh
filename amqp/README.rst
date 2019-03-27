@@ -33,6 +33,8 @@ The steps are:
 Install Web Server
 ==================
 
+steps::
+
    apt install webfsd
    mkdir /tmp/WMO_AMQP_sketch
    cd /tmp/WMO_AMQP_sketch
