@@ -8,8 +8,7 @@ WMO Mesh demonstration with RabbitMQ
 STATUS
 ======
 
-20190302 - working if you check out Sarracenia from git.  No packages available yet.
-All will be included in releases >= v2.19.03b4 
+All is included in releases >= v2.19.03b5 
 
 
 Introduction
