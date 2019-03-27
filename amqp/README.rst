@@ -110,7 +110,9 @@ This enables a subscription to the Canadian source sample AMQP server::
 
 Could add a subscription to another peer::
 
-   sr_subscribe add WMO_mesh_BWQD.conf
+   sr_subscribe add WMO_mesh_Peer.conf
+   cd ~/.config/sarra/subscribe
+   mv WMO_mesh_Peer.conf WMO_mesh_BWQD.conf
    sr_subscribe edit WMO_mesh_BWQD.conf  # to review the configuration.
 
 replace the file *Peer* and *ThisHost* in the file to correct values.
