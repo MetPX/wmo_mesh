@@ -35,10 +35,10 @@ Install Web Server
 
 steps::
 
-   apt install webfsd
-   mkdir /tmp/WMO_amqp_mesh
-   cd /tmp/WMO_amqp_mesh
-   webfs -p 8081
+   apt install webfs
+   sudo mkdir -p /var/www/html 
+   sudo chown -Rv ubuntu:ubuntu /var/www/html
+   sudo systemctl restart webfs
 
 
 Install Sarracenia
@@ -51,6 +51,8 @@ Install Sarracenia
 
 To be ready for rabbitmq broker setup::
 
+   sudo add-apt-repository ppa:ssc-hpc-chp-spc/metpx
+   sudo apt update
    sudo apt install python3-paramiko
    sudo apt install metpx-sarracenia
 
@@ -80,6 +82,7 @@ Install and Configure RabbitmQ
 
 To get a rabbitmq-server on localhost with publisher and separate subscriber::
 
+   # Be warned that this command may take a while to complete (up to a couple a minutes)
    sudo apt-get install rabbitmq-server
 
    sudo rabbitmqctl delete_user guest
