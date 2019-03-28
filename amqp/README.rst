@@ -82,7 +82,6 @@ Install and Configure RabbitmQ
 
 To get a rabbitmq-server on localhost with publisher and separate subscriber::
 
-   # Be warned that this command may take a while to complete (up to a couple a minutes)
    sudo apt-get install rabbitmq-server
 
    sudo rabbitmqctl delete_user guest
@@ -93,6 +92,7 @@ To get a rabbitmq-server on localhost with publisher and separate subscriber::
    
    sudo rabbitmq-plugins enable rabbitmq_management
 
+   # Be warned that this command may take a while to complete (up to a couple a minutes)
    sudo systemctl restart rabbitmq-server
    cd /usr/local/bin
    sudo wget http://localhost:15672/cli/rabbitmqadmin
