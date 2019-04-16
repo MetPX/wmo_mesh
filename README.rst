@@ -735,7 +735,7 @@ This demonstration code was written to illustrate the main algorithm for multipl
 to maintain a synchronized directory tree. It was originally envisioned at the
 a meeting of the World Meteorological Organization, Committee for Basic Systems
 (WMO-CBS) Namibia (2009) as an informal discussion. The idea was a bit too far from
-what others were doing to be understood at that point, and so a `Canadian stack <https://githum.com/MetPX/sarracenia>`_ 
+what others were doing to be understood at that point, and so a `Canadian stack <https://github.com/MetPX/sarracenia>`_
 fully exploiting the idea was developed to prove the concept to ourselves.
 It is very different from traditional global telecommunications system (GTS),
 and so members need a more in depth introduction. As people become comfortable 
