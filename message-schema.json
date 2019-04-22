@@ -1,0 +1,153 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "github.com/MetPX/wmo_mesh/message-schema.json",
+  "type": "object",
+  "title": "The WIS mesh data notification schema",
+  "description": "Formal description of the messages send as notification about data/file availability.",
+  "required": [
+    "pubTime",
+    "baseUrl",
+    "relPath",
+    "integrity"
+  ],
+  "properties": {
+    "pubTime": {
+      "$id": "#/properties/pubTime",
+      "format": "date-time",
+      "type": "string",
+      "title": "Publication time",
+      "description": "Time of ingestion into the mesh. ISO 8601. Note: JSON schema requires date-time in format defined by RFC 3339, i.e. something like '2019-04-22T14:06:20.123456Z' - let's ignore this subtlety for now.",
+      "examples": [
+        "20190213T123456.789Z"
+      ]
+    },
+    "baseUrl": {
+      "$id": "#/properties/baseUrl",
+      "type": "string",
+      "title": "Base URL of the service",
+      "description": "URL pointing to the server that send this notification and where the data (file) is available. For historical reasons the URL is spelled 'Url'.",
+      "examples": [
+        "https://host.example.com/data"
+      ]
+    },
+    "relPath": {
+      "$id": "#/properties/relPath",
+      "type": "string",
+      "title": "Relative path",
+      "description": "Relative path indentifies location of the file (relative to the base URL) but also can be considered as very brief metadata as the path is expected to contain standardised components such as name of producing organization.",
+      "examples": [
+        "20190213/wis/int/wmo/example/test.txt"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "integrity": {
+      "$id": "#/properties/integrity",
+      "type": "object",
+      "title": "Checksum or a digital signature of the file.",
+      "required": [
+        "method",
+        "value"
+      ],
+      "properties": {
+        "method": {
+          "$id": "#/properties/sum/properties/method",
+          "type": "string",
+          "title": "Checksumming (or signature) method",
+          "examples": [
+            "SHA256", "MD5"
+          ]
+        },
+        "value": {
+          "$id": "#/properties/sum/properties/value",
+          "type": "string",
+          "title": "The Value Schema",
+          "description": "Base 64 encoded checksum or digital signature",
+          "examples": [
+            "sZRqySSS0jR8YjW00mERhA=="
+          ]
+        }
+      }
+    },
+    "partitionStrategy": {
+      "$id": "#/properties/partitionStrategy",
+      "type": "object",
+      "title": "Partition strategy",
+      "description": "Optional way of anouncing patrialy available files.",
+      "required": [
+        "method",
+        "blockSize",
+        "blockNumber",
+        "lastBlock"
+      ],
+      "properties": {
+        "method": {
+          "$id": "#/properties/partitionStrategy/properties/method",
+          "type": "string",
+          "title": "The Method Schema",
+          "default": "",
+          "examples": [
+            "1"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "blockSize": {
+          "$id": "#/properties/partitionStrategy/properties/blockSize",
+          "type": "string",
+          "title": "The Blocksize Schema",
+          "default": "",
+          "examples": [
+            "65535"
+          ],
+          "pattern": "^(.*)$"
+        },
+        "blockNumber": {
+          "$id": "#/properties/partitionStrategy/properties/blockNumber",
+          "type": "integer",
+          "title": "The Blocknumber Schema",
+          "default": 0,
+          "examples": [
+            0
+          ]
+        },
+        "lastBlock": {
+          "$id": "#/properties/partitionStrategy/properties/lastBlock",
+          "type": "boolean",
+          "title": "The Lastblock Schema",
+          "default": false,
+          "examples": [
+            false
+          ]
+        }
+      }
+    },
+    "content": {
+      "$id": "#/properties/content",
+      "type": "object",
+      "title": "Content (body) of the file",
+      "description": "Optional way how to send the content of a file to optimize transfer of small files.",
+      "required": [
+        "encoding",
+        "value"
+      ],
+      "properties": {
+        "encoding": {
+          "$id": "#/properties/sum/properties/encoding",
+          "type": "string",
+          "title": "Message encoding",
+          "examples": [
+            "utf-8", "base64"
+          ]
+        },
+        "value": {
+          "$id": "#/properties/sum/properties/value",
+          "type": "string",
+          "title": "The file data",
+          "examples": [
+            "Hello world!"
+          ]
+        }
+      }
+    }
+  }
+}
