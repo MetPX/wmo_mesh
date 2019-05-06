@@ -55,7 +55,7 @@
           "type": "string",
           "title": "Checksumming (or signature) method",
           "examples": [
-            "SHA256", "MD5"
+            "sha512", "md5", "remove", "link", "cod", "arbitrary", "md5name", "random"
           ]
         },
         "value": {
@@ -76,9 +76,10 @@
       "description": "Optional way of anouncing patrialy available files.",
       "required": [
         "method",
-        "blockSize",
-        "blockNumber",
-        "lastBlock"
+        "size",
+        "count",
+        "remainder",
+        "number"
       ],
       "properties": {
         "method": {
@@ -87,36 +88,46 @@
           "title": "The Method Schema",
           "default": "",
           "examples": [
-            "1"
+            "partitioned", "inplace"
           ],
           "pattern": "^(.*)$"
         },
-        "blockSize": {
+        "size": {
           "$id": "#/properties/partitionStrategy/properties/blockSize",
-          "type": "string",
+          "type": "integer",
           "title": "The Blocksize Schema",
-          "default": "",
+          "default": 0,
           "examples": [
-            "65535"
+            65535
           ],
           "pattern": "^(.*)$"
         },
-        "blockNumber": {
+        "count": {
+          "$id": "#/properties/partitionStrategy/properties/blockSize",
+          "type": "integer",
+          "title": "The Blockcount Schema",
+          "default": 0,
+          "examples": [
+            65535
+          ],
+          "pattern": "^(.*)$"
+        },
+        "remainder": {
+          "$id": "#/properties/partitionStrategy/properties/lastBlock",
+          "type": "integer",
+          "title": "The size of the Lastblock Schema",
+          "default": 0,
+          "examples": [
+            1, 21352352
+          ]
+        },
+        "number": {
           "$id": "#/properties/partitionStrategy/properties/blockNumber",
           "type": "integer",
           "title": "The Blocknumber Schema",
           "default": 0,
           "examples": [
             0
-          ]
-        },
-        "lastBlock": {
-          "$id": "#/properties/partitionStrategy/properties/lastBlock",
-          "type": "boolean",
-          "title": "The Lastblock Schema",
-          "default": false,
-          "examples": [
-            false
           ]
         }
       }
