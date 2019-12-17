@@ -14,10 +14,11 @@
   "properties": {
     "pubTime": {
       "$id": "#/properties/pubTime",
-      "format": "date-time",
+      "format": "regex",
+      "pattern": "[0-9]{8}T[0-9]{6}(\\.[0-9]+)?Z?",
       "type": "string",
       "title": "Publication time",
-      "description": "Time of ingestion into the mesh. ISO 8601. Note: JSON schema requires date-time in format defined by RFC 3339, i.e. something like '2019-04-22T14:06:20.123456Z' - let's ignore this subtlety for now.",
+      "description": "Time of ingestion into the mesh. ISO 8601.",
       "examples": [
         "20190213T123456.789Z"
       ]
@@ -35,9 +36,19 @@
       "$id": "#/properties/relPath",
       "type": "string",
       "title": "Relative path",
-      "description": "Relative path indentifies location of the file (relative to the base URL) but also can be considered as very brief metadata as the path is expected to contain standardised components such as name of producing organization.",
+      "description": "Relative path identifies location of the file (relative to the base URL) but also can be considered as very brief metadata as the path is expected to contain standardised components such as name of producing organization.",
       "examples": [
         "20190213/wis/int/wmo/example/test.txt"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "retPath": {
+      "$id": "#/properties/retPath",
+      "type": "string",
+      "title": "Retrieval path",
+      "description": "If the relPath cannot be used to construct a URL that unambiguously identifies the data instance, than this value can be used to override it. In other words, this can be a very ugly string that together with the baseUrl forms a URL that your web server understands, while the relPath is a nice and structured and standardised and human readable identifier.",
+      "examples": [
+        "hgmpf/pfrck?instanceID=61686f79"
       ],
       "pattern": "^(.*)$"
     },
