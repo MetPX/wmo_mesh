@@ -119,6 +119,16 @@ a recent version of Debian or Ubuntu Linux. All of the interactions are command 
 and so familiarity with Linux system administration, editing of configuration files,
 etc. is needed.
 
+Topic Hierarchy
+===============
+
+This work is going on in::
+
+   https://github.com/petersilva/GTStoWIS2
+   https://github.com/wmo-im/GTStoWIS2
+
+Where a routine, and the tables needed to drive it has been started to map GTS AHL's to
+a tentative topic tree.
 
 Peer Setup
 ==========
