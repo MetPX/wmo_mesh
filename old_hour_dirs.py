@@ -24,7 +24,7 @@ except:
 cutoff=("%s" % ( datetime.datetime.utcnow() -datetime.timedelta(hours=how_many_hours) )).replace('-','').split()
 hour=cutoff[1].split(':')[0]
 
-last=cutoff[0]+hour
+last=cutoff[0]+'T'+hour
 
 print( "last is: %s\n" % last )
 old_dirs = [] 
